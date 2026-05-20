@@ -1,0 +1,387 @@
+@import "tailwindcss";
+
+@font-face {
+    font-family: 'Poppins-Regular';
+    src: url("/fonts/Poppins-Regular.ttf");
+}
+@font-face {
+    font-family: 'Poppins-Medium';
+    src: url("/fonts/Poppins-Medium.ttf");
+}
+@font-face {
+    font-family: 'Poppins-Bold';
+    src: url("/fonts/Poppins-Bold.ttf");
+}
+@font-face {
+    font-family: 'Poppins-Light';
+    src: url("/fonts/Poppins-Light.ttf");
+}
+@font-face {
+    font-family: 'Poppins-SemiBold';
+    src: url("/fonts/Poppins-SemiBold.ttf");
+}
+@font-face {
+    font-family: 'Volkhov-Bold';
+    src: url("/fonts/volkhov.bold.ttf");
+}
+
+@theme {
+
+    --font-poppins-light: Poppins-Light, sans-serif;
+    --font-poppins-regular: Poppins-Regular, sans-serif;
+    --font-poppins-medium: Poppins-Medium, sans-serif;
+    --font-poppins-semibold: Poppins-SemiBold, sans-serif;
+    --font-poppins-bold: Poppins-Bold, sans-serif;
+    --font-volkhov-bold: Volkhov-Bold, serif;
+    --color-latar: #f3f4f6;
+    --color-teks: #374151;
+    --color-teks-samping: #6b7280;
+    --color-garis: #e5e7eb;
+    --color-hijau: #00B074;
+    --color-merah: #ef4444;
+    --color-biru: #3b82f6;
+    --color-kuning: #f59e0b;
+    --color-login: #AAB700;
+    --color-primary-blue: #181e4b;
+    --color-accent-orange: #df6951;
+    --color-accent-yellow: #dfd739;
+    --color-text-gray: #5e6282;
+}
+
+body {
+  @apply font-poppins-regular;
+  overflow-x: hidden;
+}
+
+
+/* --- Shared Tailwind-based helpers (already used in other components) --- */
+.play-wrapper {
+  @apply absolute inset-0 flex items-center justify-center -translate-y-10;
+}
+
+.play-button {
+  @apply w-24
+  h-24
+  rounded-full
+  bg-white/10
+  backdrop-blur-xl
+  border
+  border-white/20
+  flex
+  items-center
+  justify-center
+  transition-all
+  duration-300;
+}
+
+.play-inner {
+  @apply w-16 h-16
+  rounded-full
+  bg-white
+  flex items-center justify-center
+  shadow-xl;
+}
+
+.play-icon {
+  @apply text-gray-800
+  text-xl
+  ml-1
+  transition
+  group-hover:scale-110;
+}
+
+.image-overlay {
+  @apply absolute
+  inset-0
+  flex
+  flex-col
+  justify-between
+  p-8
+  bg-gradient-to-b
+  from-black/10
+  via-black/20
+  to-black/60;
+}
+
+/* --- Auth button used in components/Login buttons --- */
+.login-button {
+  @apply w-full
+  text-white
+  py-4
+  rounded-full
+  font-poppins-medium
+  transition-all
+  duration-300;
+
+  background-color: #AAB700;
+
+  box-shadow:
+    0px 10px 25px rgba(170, 183, 0, 0.35),
+    0px 4px 10px rgba(170, 183, 0, 0.25);
+}
+
+.login-button:hover {
+  background-color: #98a500;
+
+  transform: translateY(-2px);
+
+  box-shadow:
+    0px 14px 30px rgba(170, 183, 0, 0.4),
+    0px 6px 14px rgba(170, 183, 0, 0.3);
+}
+
+/* --- Navbar (components/Navbar.jsx) --- */
+.navbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 30px 8%;
+  background-color: transparent;
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 100;
+}
+
+.logo {
+  font-family: var(--font-poppins-bold);
+  font-size: 1.5rem;
+  color: var(--color-primary-blue);
+}
+
+.nav-links {
+  display: flex;
+  gap: 40px;
+}
+
+.nav-links a {
+  text-decoration: none;
+  color: #212832;
+  font-family: var(--font-poppins-medium);
+  font-size: 1rem;
+  transition: color 0.3s;
+}
+
+.nav-links a:hover {
+  color: var(--color-accent-orange);
+}
+
+.nav-buttons {
+  display: flex;
+  align-items: center;
+  gap: 30px;
+}
+
+.btn-signup {
+  background: none;
+  border: 1px solid #212832;
+  padding: 10px 25px;
+  border-radius: 8px;
+  font-family: var(--font-poppins-medium);
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.btn-signup:hover {
+  background-color: #212832;
+  color: white;
+}
+
+.btn-signin {
+  text-decoration: none;
+  color: #212832;
+  font-family: var(--font-poppins-medium);
+  border-bottom: 2px solid #212832;
+  padding-bottom: 2px;
+  font-weight: 500;
+}
+
+/* --- Hero (components/Hero.jsx) --- */
+.hero-container {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 120px 8% 50px 8%;
+  min-height: 100vh;
+  gap: 20px;
+}
+
+.hero-text {
+  flex: 1;
+  text-align: left;
+}
+
+.sub-headline {
+  color: var(--color-accent-orange);
+  font-family: var(--font-poppins-bold);
+  font-size: 1.1rem;
+  margin-bottom: 20px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.main-headline {
+  font-family: var(--font-volkhov-bold);
+  font-size: 4.5rem;
+  line-height: 1.1;
+  margin-bottom: 25px;
+  color: var(--color-primary-blue);
+}
+
+.highlight {
+  position: relative;
+  display: inline-block;
+}
+
+.highlight::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: 12px;
+  width: 100%;
+  height: 10px;
+  background-color: rgba(223, 105, 81, 0.3);
+  z-index: -1;
+  border-radius: 10px;
+}
+
+/* Do NOT override all <p> globally (can break other pages). */
+.hero-text p {
+  margin: 0;
+  padding: 0;
+}
+
+
+.hero-text .description {
+  color: var(--color-text-gray) !important;
+  font-family: var(--font-poppins-regular) !important;
+  font-size: 1.1rem;
+  line-height: 1.8;
+  margin-bottom: 35px;
+  max-width: 450px;
+}
+
+.cta-button {
+  background-color: var(--color-login);
+  color: #fff;
+  border: none;
+  padding: 18px 35px;
+  font-family: var(--font-poppins-bold);
+  border-radius: 12px;
+  cursor: pointer;
+  box-shadow: 0 10px 20px rgba(223, 215, 57, 0.3);
+}
+
+.hero-image-area {
+  flex: 1;
+  position: relative;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.traveler-img {
+  width: 100%;
+  max-width: 500px;
+  z-index: 2;
+  position: relative;
+  border-radius: 30px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.05);
+}
+
+.yellow-bg-shape {
+  position: absolute;
+  top: -40px;
+  right: -40px;
+  width: 100%;
+  height: 100%;
+  background-color: #d2d06b;
+  opacity: 0.6;
+  z-index: 1;
+  border-radius: 30% 70% 70% 30% / 30% 30% 70% 70%;
+}
+
+/* --- Header (layouts/Header.jsx) --- */
+#header-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px;
+}
+
+#search-bar {
+  position: relative;
+  width: 100%;
+  max-width: 32rem;
+}
+
+#search-input {
+  width: 100%;
+  border: 1px solid var(--color-garis);
+  border-radius: 12px;
+  padding: 10px 44px 10px 14px;
+  outline: none;
+  font-family: var(--font-poppins-regular);
+}
+
+#search-icon {
+  position: absolute;
+  right: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+#icons-container {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+}
+
+#notification-icon,
+#chart-icon,
+#settings-icon {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+#notification-badge {
+  position: absolute;
+  top: -6px;
+  right: -8px;
+  width: 20px;
+  height: 20px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9999px;
+  background-color: var(--color-merah);
+  color: white;
+  font-size: 0.75rem;
+  font-family: var(--font-poppins-medium);
+}
+
+#profile-container {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+#profile-text {
+  font-family: var(--font-poppins-medium);
+  color: #111827;
+}
+
+/* extra ids/classes referenced by Header jsx */
+#profile-avatar {
+  object-fit: cover;
+}
+
+#icons-container svg {
+  width: 22px;
+  height: 22px;
+  color: #181e4b;
+}
+
+
