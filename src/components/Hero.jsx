@@ -1,25 +1,56 @@
-import travelerImg from "../assets/Traveler.jpeg";
+import React from "react";
+import bgJepang from "../assets/jepang.jpg";
 
-export default function Hero() {
+function Hero() {
   return (
-    <section className="hero-container">
-      <div className="hero-text">
-        <p className="sub-headline">Best Destinations around the world</p>
-        <h1 className="main-headline">
-          Travel, <span className="highlight">enjoy</span> and live a new and full life
+    <section className="hero-full-banner">
+    <img 
+        src="/jepang.jpg" 
+        alt="Background Latar Belakang" 
+        className="bg-banner-image" 
+      />
+
+      {/* Overlay Gelap Tipis agar Teks Terbaca */}
+      <div className="banner-overlay"></div>
+
+      {/* Konten Tengah */}
+      <div className="banner-content">
+        <h1 className="main-headline-center">
+          We Find The Best Tours For You
         </h1>
-        <p className="description">
-          Built Wicket longer admire do barton vanity itself do in it.
+        
+        <p className="description-center">
+          Built Wicket longer admire do barton vanity itself do in it. 
           Preferred to sportsmen it engrossed listening. Park gate sell they west hard for the.
         </p>
-        <button className="cta-button">Find out more</button>
+
+        {/* Tombol Play Video */}
+        <div className="play-container">
+          <button className="play-btn-circle">
+            <span className="play-triangle"></span>
+          </button>
+          <span className="play-text">Watch Video</span>
+        </div>
       </div>
 
-      <div className="hero-image-area">
-        <div className="yellow-bg-shape"></div>
-        <img src={travelerImg} alt="traveler" className="traveler-img" />
+      {/* Search Bar Melayang di Bawah */}
+      <div className="search-floating-bar">
+        <div className="search-item">
+          <span className="search-label">Location</span>
+          <input type="text" placeholder="Search For A Destination" />
+        </div>
+        <div className="search-item border-side">
+          <span className="search-label">Guests</span>
+          <input type="text" placeholder="How many Guests?" />
+        </div>
+        <div className="search-item border-side">
+          <span className="search-label">Date</span>
+          <input type="text" placeholder="Pick a date" />
+        </div>
+        <button className="search-submit-btn">Search</button>
       </div>
     </section>
   );
 }
 
+export default Hero;

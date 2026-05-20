@@ -1,5 +1,6 @@
 @import "tailwindcss";
 
+/* 1. FONT FACE SETUP */
 @font-face {
     font-family: 'Poppins-Regular';
     src: url("/fonts/Poppins-Regular.ttf");
@@ -25,14 +26,15 @@
     src: url("/fonts/volkhov.bold.ttf");
 }
 
+/* 2. TAILWIND V4 THEME CONFIG */
 @theme {
-
     --font-poppins-light: Poppins-Light, sans-serif;
     --font-poppins-regular: Poppins-Regular, sans-serif;
     --font-poppins-medium: Poppins-Medium, sans-serif;
     --font-poppins-semibold: Poppins-SemiBold, sans-serif;
     --font-poppins-bold: Poppins-Bold, sans-serif;
     --font-volkhov-bold: Volkhov-Bold, serif;
+    
     --color-latar: #f3f4f6;
     --color-teks: #374151;
     --color-teks-samping: #6b7280;
@@ -51,86 +53,45 @@
 body {
   @apply font-poppins-regular;
   overflow-x: hidden;
+  background-color: white;
 }
 
-
-/* --- Shared Tailwind-based helpers (already used in other components) --- */
+/* 3. SHARED HELPERS */
 .play-wrapper {
   @apply absolute inset-0 flex items-center justify-center -translate-y-10;
 }
 
 .play-button {
-  @apply w-24
-  h-24
-  rounded-full
-  bg-white/10
-  backdrop-blur-xl
-  border
-  border-white/20
-  flex
-  items-center
-  justify-center
-  transition-all
-  duration-300;
+  @apply w-24 h-24 rounded-full bg-white/10 backdrop-blur-xl border border-white/20 flex items-center justify-center transition-all duration-300;
 }
 
 .play-inner {
-  @apply w-16 h-16
-  rounded-full
-  bg-white
-  flex items-center justify-center
-  shadow-xl;
+  @apply w-16 h-16 rounded-full bg-white flex items-center justify-center shadow-xl;
 }
 
 .play-icon {
-  @apply text-gray-800
-  text-xl
-  ml-1
-  transition
-  group-hover:scale-110;
+  @apply text-gray-800 text-xl ml-1 transition group-hover:scale-110;
 }
 
 .image-overlay {
-  @apply absolute
-  inset-0
-  flex
-  flex-col
-  justify-between
-  p-8
-  bg-gradient-to-b
-  from-black/10
-  via-black/20
-  to-black/60;
+  @apply absolute inset-0 flex flex-col justify-between p-8 bg-gradient-to-b from-black/10 via-black/20 to-black/60;
 }
 
-/* --- Auth button used in components/Login buttons --- */
+/* 4. AUTH BUTTONS */
 .login-button {
-  @apply w-full
-  text-white
-  py-4
-  rounded-full
-  font-poppins-medium
-  transition-all
-  duration-300;
-
+  @apply w-full text-white py-4 rounded-full transition-all duration-300;
+  font-family: var(--font-poppins-medium);
   background-color: #AAB700;
-
-  box-shadow:
-    0px 10px 25px rgba(170, 183, 0, 0.35),
-    0px 4px 10px rgba(170, 183, 0, 0.25);
+  box-shadow: 0px 10px 25px rgba(170, 183, 0, 0.35), 0px 4px 10px rgba(170, 183, 0, 0.25);
 }
 
 .login-button:hover {
   background-color: #98a500;
-
   transform: translateY(-2px);
-
-  box-shadow:
-    0px 14px 30px rgba(170, 183, 0, 0.4),
-    0px 6px 14px rgba(170, 183, 0, 0.3);
+  box-shadow: 0px 14px 30px rgba(170, 183, 0, 0.4), 0px 6px 14px rgba(170, 183, 0, 0.3);
 }
 
-/* --- Navbar (components/Navbar.jsx) --- */
+/* 5. NAVBAR STYLING */
 .navbar {
   display: flex;
   justify-content: space-between;
@@ -148,6 +109,10 @@ body {
   font-family: var(--font-poppins-bold);
   font-size: 1.5rem;
   color: var(--color-primary-blue);
+}
+
+.logo span {
+  font-weight: 800;
 }
 
 .nav-links {
@@ -197,7 +162,7 @@ body {
   font-weight: 500;
 }
 
-/* --- Hero (components/Hero.jsx) --- */
+/* 6. HERO STYLING (CLASSIC SPLIT VERSION) */
 .hero-container {
   display: flex;
   align-items: center;
@@ -246,12 +211,10 @@ body {
   border-radius: 10px;
 }
 
-/* Do NOT override all <p> globally (can break other pages). */
 .hero-text p {
   margin: 0;
   padding: 0;
 }
-
 
 .hero-text .description {
   color: var(--color-text-gray) !important;
@@ -282,26 +245,27 @@ body {
 
 .traveler-img {
   width: 100%;
-  max-width: 500px;
+  max-width: 700px;
   z-index: 2;
   position: relative;
   border-radius: 30px;
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
 }
 
 .yellow-bg-shape {
   position: absolute;
-  top: -40px;
-  right: -40px;
+  top: -20px;
+  right: -60px;
   width: 100%;
   height: 100%;
-  background-color: #d2d06b;
-  opacity: 0.6;
+  background-color: var(--color-accent-yellow);
+  opacity: 0.5;
   z-index: 1;
   border-radius: 30% 70% 70% 30% / 30% 30% 70% 70%;
+  filter: blur(2px);
 }
 
-/* --- Header (layouts/Header.jsx) --- */
+/* 7. DASHBOARD HEADER STYLING */
 #header-container {
   display: flex;
   justify-content: space-between;
@@ -337,9 +301,7 @@ body {
   gap: 18px;
 }
 
-#notification-icon,
-#chart-icon,
-#settings-icon {
+#notification-icon, #chart-icon, #settings-icon {
   position: relative;
   display: flex;
   align-items: center;
@@ -373,7 +335,6 @@ body {
   color: #111827;
 }
 
-/* extra ids/classes referenced by Header jsx */
 #profile-avatar {
   object-fit: cover;
 }
@@ -384,4 +345,162 @@ body {
   color: #181e4b;
 }
 
+/* ==========================================================================
+   8. NEW HERO FULL SCREEN BANNER DESIGN (REVISED & FIXED)
+   ========================================================================== */
 
+.hero-full-banner {
+  position: relative !important;
+  width: 100% !important;
+  min-height: 100vh !important;
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: center !important;
+  align-items: center !important;
+  padding: 0 8% !important;
+  overflow: hidden !important;
+  background-color: transparent !important; /* Membuang background putih/abu bawaan div luar */
+}
+
+/* LAYER 1: Paling Belakang */
+.bg-banner-image {
+  position: absolute !important;
+  top: 0 !important;
+  left: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover !important; 
+  object-position: center !important;
+  z-index: 1 !important; /* Dasar tumpukan */
+}
+
+/* LAYER 2: Di Atas Gambar, Di Bawah Teks */
+.banner-overlay {
+  position: absolute !important;
+  top: 0 !important;
+  left: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+  background: rgba(0, 0, 0, 0.2) !important; /* Gelap transparan biar teks kelihatan tajam */
+  z-index: 2 !important; 
+}
+
+/* LAYER 3: Konten Teks & Tombol Harus di Depan Overlay */
+.banner-content {
+  position: relative !important;
+  text-align: center !important;
+  max-width: 800px !important;
+  color: #181e4b !important; /* Ganti ke #ffffff jika gambar jepang-mu terlalu gelap */
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  margin-top: 60px !important;
+  z-index: 3 !important; /* Maju ke depan overlay */
+}
+
+.main-headline-center {
+  font-family: var(--font-volkhov-bold);
+  font-size: 3.5rem;
+  line-height: 1.2;
+  margin-bottom: 20px;
+}
+
+.description-center {
+  font-family: var(--font-poppins-medium);
+  font-size: 1.1rem;
+  line-height: 1.8;
+  opacity: 0.8;
+  max-width: 600px;
+  margin-bottom: 30px;
+}
+
+/* Play Video Components */
+.play-container {
+  display: flex !important;
+  align-items: center !important;
+  gap: 15px !important;
+  cursor: pointer !important;
+}
+
+.play-btn-circle {
+  width: 55px !important;
+  height: 55px !important;
+  border-radius: 50% !important;
+  background: white !important;
+  border: none !important;
+  display: flex !important;
+  justify-content: center !important;
+  align-items: center !important;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.1) !important;
+}
+
+.play-triangle {
+  width: 0 !important;
+  height: 0 !important;
+  border-top: 8px solid transparent !important;
+  border-bottom: 8px solid transparent !important;
+  border-left: 14px solid var(--color-hijau) !important;
+  margin-left: 4px !important;
+}
+
+.play-text {
+  font-family: var(--font-poppins-medium);
+  font-weight: 600;
+}
+
+/* LAYER 4: Search Bar Melayang Paling Depan */
+.search-floating-bar {
+  position: absolute !important;
+  bottom: 40px !important;
+  background: white !important;
+  padding: 15px 30px !important;
+  border-radius: 50px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.12) !important;
+  width: 84 !important;
+  max-width: 1000px !important;
+  z-index: 4 !important; /* Paling depan supaya inputan bisa diklik */
+}
+
+.search-item {
+  display: flex !important;
+  flex-direction: column !important;
+  flex: 1 !important;
+  padding: 0 20px !important;
+}
+
+.border-side {
+  border-left: 1px solid var(--color-garis) !important;
+}
+
+.search-label {
+  font-family: var(--font-poppins-bold);
+  font-size: 0.85rem;
+  color: var(--color-hijau);
+  margin-bottom: 4px;
+}
+
+.search-item input {
+  border: none !important;
+  outline: none !important;
+  font-family: var(--font-poppins-regular);
+  font-size: 0.9rem;
+  color: var(--color-teks-samping);
+}
+
+.search-submit-btn {
+  background-color: var(--color-kuning) !important;
+  color: white !important;
+  border: none !important;
+  padding: 14px 35px !important;
+  border-radius: 30px !important;
+  font-family: var(--font-poppins-bold);
+  cursor: pointer;
+  transition: transform 0.2s !important;
+}
+
+.search-submit-btn:hover {
+  transform: scale(1.03) !important;
+}
