@@ -1,54 +1,61 @@
 import React from "react";
-import bgJepang from "../assets/jepang.jpg";
 
 function Hero() {
   return (
-    <section className="hero-full-banner">
-    <img 
-        src="/jepang.jpg" 
-        alt="Background Latar Belakang" 
-        className="bg-banner-image" 
-      />
+    <section className="hero">
 
-      {/* Overlay Gelap Tipis agar Teks Terbaca */}
-      <div className="banner-overlay"></div>
+      {/* Background */}
+      <div className="hero-overlay"></div>
 
-      {/* Konten Tengah */}
-      <div className="banner-content">
-        <h1 className="main-headline-center">
-          We Find The Best Tours For You
+      {/* Content */}
+      <div className="hero-content">
+
+        <span className="hero-badge">
+          Explore The World
+        </span>
+
+        <h1 className="hero-title">
+          Find Your Perfect
+          <br />
+          Travel Destination
         </h1>
-        
-        <p className="description-center">
-          Built Wicket longer admire do barton vanity itself do in it. 
-          Preferred to sportsmen it engrossed listening. Park gate sell they west hard for the.
+
+        <p className="hero-description">
+          Discover beautiful places, unforgettable experiences,
+          and amazing adventures around the world with the best
+          travel packages for your next journey.
         </p>
 
-        {/* Tombol Play Video */}
-        <div className="play-container">
-          <button className="play-btn-circle">
-            <span className="play-triangle"></span>
-          </button>
-          <span className="play-text">Watch Video</span>
-        </div>
       </div>
 
-      {/* Search Bar Melayang di Bawah */}
-      <div className="search-floating-bar">
-        <div className="search-item">
-          <span className="search-label">Location</span>
-          <input type="text" placeholder="Search For A Destination" />
+      {/* Search Box */}
+      <div className="hero-search-box">
+
+        <div className="hero-search-item">
+          <span>Location</span>
+          <input type="text" placeholder="Search destination" />
         </div>
-        <div className="search-item border-side">
-          <span className="search-label">Guests</span>
-          <input type="text" placeholder="How many Guests?" />
+
+        <div className="hero-search-divider"></div>
+
+        <div className="hero-search-item">
+          <span>Guests</span>
+          <input type="text" placeholder="2 Guests" />
         </div>
-        <div className="search-item border-side">
-          <span className="search-label">Date</span>
-          <input type="text" placeholder="Pick a date" />
+
+        <div className="hero-search-divider"></div>
+
+        <div className="hero-search-item">
+          <span>Date</span>
+          <input type="text" placeholder="Select date" />
         </div>
-        <button className="search-submit-btn">Search</button>
+
+        <button className="hero-search-btn">
+          Search
+        </button>
+
       </div>
+
     </section>
   );
 }
