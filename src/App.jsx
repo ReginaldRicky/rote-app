@@ -1,62 +1,120 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import { lazy, Suspense } from "react";
+import { lazy, Suspense, useEffect } from "react";
+import {
+  BrowserRouter,
+  Routes,
+  Route,
+  Link,
+  useLocation,
+} from "react-router-dom";
+import { AnimatePresence, MotionConfig, motion } from "motion/react";
+
+import ProtectedRoute from "./pelanggan/components/ProtectedRoute";
 import "./App.css";
 
-import Home from "./pages/Home";
+import Home from "./pelanggan/pages/Home";
 
-const LoginPage = lazy(() => import("./pages/LoginPage"));
-const RegisterPage = lazy(() => import("./pages/RegisterPage"));
-const ForgotPasswordPage = lazy(() => import("./pages/ForgotPasswordPage"));
-const DestinationsPage = lazy(() => import("./pages/DestinationsPage"));
-const ProfilePage = lazy(() => import("./pages/ProfilePage"));
-const BookingsPage = lazy(() => import("./pages/BookingsPage"));
-const Detail = lazy(() => import("./pages/Detail"));
-const Booking = lazy(() => import("./pages/Booking"));
+const LoginPage = lazy(() => import("./pelanggan/pages/LoginPage"));
+const RegisterPage = lazy(() => import("./pelanggan/pages/RegisterPage"));
+const ForgotPasswordPage = lazy(() => import("./pelanggan/pages/ForgotPasswordPage"));
+
+const DestinationsPage = lazy(() => import("./pelanggan/pages/DestinationsPage"));
+const Detail = lazy(() => import("./pelanggan/pages/Detail"));
+const Booking = lazy(() => import("./pelanggan/pages/Booking"));
+const BookingsPage = lazy(() => import("./pelanggan/pages/BookingsPage"));
+const BookingDetailPage = lazy(() => import("./pelanggan/pages/BookingDetailPage"));
+
+const ProfilePage = lazy(() => import("./pelanggan/pages/ProfilePage"));
+const AboutPage = lazy(() => import("./pelanggan/pages/AboutPage"));
 
 function LoadingScreen() {
   return (
-    <div className="min-h-screen flex items-center justify-center">
-      <p className="font-poppins-medium text-gray-500">Loading...</p>
+    <div className="min-h-screen flex items-center justify-center bg-white">
+      <div className="flex flex-col items-center gap-4">
+        <div className="w-10 h-10 border-4 border-[#AAB700]/20 border-t-[#AAB700] rounded-full animate-spin"></div>
+
+        <p className="font-poppins-medium text-gray-500 text-sm">
+          Loading...
+        </p>
+      </div>
     </div>
   );
 }
 
-function App() {
+function NotFoundPage() {
   return (
-    <BrowserRouter>
-      <Suspense fallback={<LoadingScreen />}>
-        <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/login" element={<LoginPage />} />
-          <Route path="/register" element={<RegisterPage />} />
-          <Route path="/forgot-password" element={<ForgotPasswordPage />} />
-          <Route path="/dashboard" element={<Home />} />
-          <Route path="/destinations" element={<DestinationsPage />} />
-          <Route path="/profile" element={<ProfilePage />} />
-<Route path="/bookings" element={<BookingsPage />} />
-          {/* Route Detail */}
-          <Route path="/detail/:id" element={<Detail />} />
+    <div className="min-h-screen flex flex-col items-center justify-center gap-4 bg-white px-6 text-center">
+      <h1 className="text-5xl font-bold text-gray-800">404</h1>
 
-          {/* Route Booking */}
-          <Route path="/booking/:id" element={<Booking />} />
+      <p className="text-gray-500">
+        Halaman tidak ditemukan.
+      </p>
 
-          {/* 404 */}
-          <Route
-            path="*"
-            element={
-              <div className="min-h-screen flex flex-col items-center justify-center gap-4">
-                <h1 className="text-4xl font-bold text-gray-800">404</h1>
-                <p className="text-gray-500">Halaman tidak ditemukan.</p>
-                <a href="/" className="text-blue-500 underline">
-                  Kembali ke Home
-                </a>
-              </div>
-            }
-          />
-        </Routes>
-      </Suspense>
-    </BrowserRouter>
+      <Link
+        to="/"
+        className="bg-[#AAB700] text-white px-6 py-3 rounded-full font-semibold hover:bg-[#98a500] transition"
+      >
+        Kembali ke Home
+      </Link>
+    </div>
   );
 }
 
-export default App;
+function AnimatedRoutes() {
+  const location = useLocation();
+
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [location.pathname]);
+
+  return (
+    <AnimatePresence mode="wait" initial={false}>
+      <motion.div
+        key={location.pathname}
+        initial={{ opacity: 0, y: 12 }}
+        animate={{ opacity: 1, y: 0 }}
+        exit={{ opacity: 0, y: -8 }}
+        transition={{
+          duration: 0.28,
+          ease: "easeOut",
+        }}
+        className="min-h-screen"
+      >
+        <Suspense fallback={<LoadingScreen />}>
+          <Routes location={location}>
+            <Route path="/" element={<Home />} />
+            <Route path="/dashboard" element={<Home />} />
+
+            <Route path="/login" element={<LoginPage />} />
+            <Route path="/register" element={<RegisterPage />} />
+            <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+
+            {/* Halaman publik */}
+            <Route path="/destinations" element={<DestinationsPage />} />
+            <Route path="/detail/:id" element={<Detail />} />
+            <Route path="/about" element={<AboutPage />} />
+
+            {/* Halaman khusus pelanggan yang sudah login */}
+            <Route element={<ProtectedRoute />}>
+              <Route path="/booking/:id" element={<Booking />} />
+              <Route path="/bookings" element={<BookingsPage />} />
+              <Route path="/bookings/:bookingId" element={<BookingDetailPage />} />
+              <Route path="/profile" element={<ProfilePage />} />
+            </Route>
+
+            <Route path="*" element={<NotFoundPage />} />
+          </Routes>
+        </Suspense>
+      </motion.div>
+    </AnimatePresence>
+  );
+}
+
+export default function App() {
+  return (
+    <BrowserRouter>
+      <MotionConfig reducedMotion="user">
+        <AnimatedRoutes />
+      </MotionConfig>
+    </BrowserRouter>
+  );
+}

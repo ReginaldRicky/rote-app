@@ -60,10 +60,13 @@ a {
 }
 
 .detail-layout {
-  display: grid;
-  grid-template-columns: 1fr 340px;
-  gap: 30px;
-  align-items: start;
+  display: block;
+  width: 100%;
+}
+
+.detail-left {
+  width: 100%;
+  min-width: 0;
 }
 
 .detail-hero-img {
@@ -167,70 +170,90 @@ a {
   margin-top: 18px;
 }
 
-.booking-card {
-  background: #ffffff;
-  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.12);
-  padding: 24px;
-  position: sticky;
-  top: 100px;
+/* =============================================
+   Detail Booking Action
+   ============================================= */
+
+.detail-booking-action {
+  margin-top: 26px;
+  padding: 24px 28px;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+
+  background:
+    linear-gradient(
+      135deg,
+      rgba(24, 30, 75, 0.98),
+      rgba(45, 53, 111, 0.96)
+    );
+
+  border-radius: 20px;
+  box-shadow: 0 16px 36px rgba(24, 30, 75, 0.18);
 }
 
-.booking-card h3 {
-  font-size: 20px;
-  margin-bottom: 25px;
-  color: #1c2b38;
+.detail-booking-action > div {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
 }
 
-.booking-card label {
-  display: block;
+.detail-booking-action span {
+  color: rgba(255, 255, 255, 0.68);
   font-size: 13px;
-  font-weight: 700;
-  margin-bottom: 8px;
-  color: #1c2b38;
 }
 
-.booking-card input,
-.booking-card select {
-  width: 100%;
-  border: none;
-  background: #f3f4f6;
-  padding: 13px;
-  margin-bottom: 18px;
-  color: #596a78;
-}
-
-.subtotal {
-  text-align: center;
-  color: #8a98a8;
-  margin-top: 5px;
-}
-
-.booking-card h2 {
-  text-align: center;
-  font-size: 34px;
-  color: #7ac4b8;
-  margin-bottom: 20px;
-}
-
-.confirm-btn {
-  display: block;
-  text-align: center;
-  background: #7ac4b8;
+.detail-booking-action strong {
   color: white;
-  padding: 14px;
-  text-decoration: none;
-  font-weight: 700;
-  margin-bottom: 12px;
+  font-family: var(--font-poppins-bold);
+  font-size: 28px;
 }
 
-.outline-btn {
-  width: 100%;
-  padding: 13px;
-  background: white;
-  border: 1px solid #9aa7b4;
-  color: #55636f;
-  margin-bottom: 12px;
-  cursor: pointer;
+.detail-booking-action small {
+  color: rgba(255, 255, 255, 0.65);
+  font-family: var(--font-poppins-regular);
+  font-size: 13px;
+  font-weight: 400;
+}
+
+.detail-booking-action-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  min-width: 180px;
+  padding: 14px 26px;
+
+  border-radius: 999px;
+  background: #AAB700;
+  color: white;
+
+  text-decoration: none;
+  font-family: var(--font-poppins-semibold);
+  font-size: 14px;
+
+  box-shadow: 0 10px 24px rgba(170, 183, 0, 0.3);
+  transition: 0.3s;
+}
+
+.detail-booking-action-btn:hover {
+  background: #98a500;
+  color: white;
+  transform: translateY(-2px);
+}
+
+@media (max-width: 768px) {
+  .detail-booking-action {
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 22px;
+  }
+
+  .detail-booking-action-btn {
+    width: 100%;
+  }
 }
 
 .related-header {
@@ -390,19 +413,6 @@ a {
 }
 
 /* FIX WARNA DETAIL PAGE */
-
-.booking-card h2 {
-  color: #AAB700 !important;
-}
-
-.confirm-btn {
-  background: #AAB700 !important;
-  color: white !important;
-}
-
-.confirm-btn:hover {
-  background: #98a500 !important;
-}
 
 .related-header button {
   background: #AAB700 !important;

@@ -13,7 +13,7 @@ export default function Header() {
         <FaSearch id="search-icon" />
       </div>
 
-      <div id="icons-containaer">
+      <div id="icons-container">
         <div id="notification-icon">
           <FaBell />
           <span id="notification-badge">50</span>
