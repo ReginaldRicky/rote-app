@@ -1,27 +1,49 @@
+import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-
-import Navbar from "../components/Navbar";
-import Footer from "../components/Footer";
 import BookingCheckout from "../components/BookingCheckout";
-import BookingNotFound from "../components/BookingNotFound";
-
 import { getTourById } from "../data/tours";
 
 export default function Booking() {
   const { id } = useParams();
-  const tour = getTourById(id);
+  const [tour, setTour] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function loadTour() {
+      try {
+        setLoading(true);
+
+        const data = await getTourById(id);
+
+        setTour(data);
+      } catch (err) {
+        console.log(err);
+        setTour(null);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    loadTour();
+  }, [id]);
+
+  if (loading) {
+    return (
+      <div className="p-10 text-center">
+        Loading destination data...
+      </div>
+    );
+  }
+
+  if (!tour) {
+    return (
+      <div className="p-10 text-center text-red-500">
+        Tour tidak ditemukan
+      </div>
+    );
+  }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <Navbar />
-
-      {tour ? (
-        <BookingCheckout tour={tour} />
-      ) : (
-        <BookingNotFound />
-      )}
-
-      <Footer />
-    </div>
+    <BookingCheckout tour={tour} />
   );
 }

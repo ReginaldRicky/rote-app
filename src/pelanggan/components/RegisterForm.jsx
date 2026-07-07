@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { FiMail, FiLock, FiUser, FiEye, FiEyeOff } from "react-icons/fi";
 import { Link, useNavigate } from "react-router-dom";
+import { registerCustomer } from "../services/customerAuthService";
 
-const USERS_KEY = "registeredCustomers";
 
 export default function RegisterForm() {
   const navigate = useNavigate();
@@ -19,14 +19,6 @@ export default function RegisterForm() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
-
-  function getUsers() {
-    try {
-      return JSON.parse(localStorage.getItem(USERS_KEY) || "[]");
-    } catch {
-      return [];
-    }
-  }
 
   function handleChange(e) {
     const { name, value } = e.target;
@@ -60,60 +52,50 @@ export default function RegisterForm() {
       return "Username minimal 3 karakter.";
     }
 
-    if (password.length < 6) {
-      return "Password minimal 6 karakter.";
+    if (password.length < 8) {
+      return "Password minimal 8 karakter.";
     }
 
     if (password !== confirmPassword) {
       return "Password dan Confirm Password tidak sama.";
     }
 
-    const users = getUsers();
-
-    const alreadyExists = users.some((user) => {
-      const sameEmail = user.email?.toLowerCase() === email.toLowerCase();
-      const sameUsername =
-        user.username?.toLowerCase() === username.toLowerCase();
-
-      return sameEmail || sameUsername;
-    });
-
-    if (alreadyExists) {
-      return "Email atau username sudah terdaftar.";
-    }
 
     return null;
   }
 
-  function handleSubmit(e) {
-    e.preventDefault();
-    setError("");
-    setSuccess("");
+async function handleSubmit(e) {
+  e.preventDefault();
 
-    const validationError = validate();
+  setError("");
+  setSuccess("");
 
-    if (validationError) {
-      setError(validationError);
-      return;
-    }
+  const validationError = validate();
 
-    setLoading(true);
+  if (validationError) {
+    setError(validationError);
+    return;
+  }
 
-    const users = getUsers();
+  setLoading(true);
 
-    const newUser = {
-      id: Date.now().toString(),
-      email: formData.email.trim().toLowerCase(),
-      username: formData.username.trim(),
+  try {
+    await registerCustomer({
+      nama: formData.username.trim(),
+
+      email: formData.email
+        .trim()
+        .toLowerCase(),
+
       password: formData.password,
-      avatar: "",
-      createdAt: new Date().toISOString(),
-    };
 
-    localStorage.setItem(USERS_KEY, JSON.stringify([newUser, ...users]));
+      password_confirmation:
+        formData.confirmPassword,
+    });
 
-    setLoading(false);
-    setSuccess("Registrasi berhasil. Silakan login.");
+    setSuccess(
+      "Registrasi berhasil. Silakan login."
+    );
 
     setFormData({
       email: "",
@@ -125,7 +107,38 @@ export default function RegisterForm() {
     setTimeout(() => {
       navigate("/login");
     }, 1000);
+  } catch (err) {
+    console.error(
+      "Registrasi pelanggan gagal:",
+      err
+    );
+
+    const validationErrors =
+      err.response?.data?.errors;
+
+    if (validationErrors) {
+      const firstError =
+        Object.values(validationErrors)
+          .flat()
+          .find(Boolean);
+
+      setError(
+        firstError ||
+        "Data registrasi tidak valid."
+      );
+
+      return;
+    }
+
+    setError(
+      err.response?.data?.message ||
+      err.message ||
+      "Registrasi gagal."
+    );
+  } finally {
+    setLoading(false);
   }
+}
 
   return (
     <form className="w-full" onSubmit={handleSubmit}>

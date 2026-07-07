@@ -1,90 +1,67 @@
 import { Link } from "react-router-dom";
+import { useEffect, useState } from "react";
+
 import DestinationCard from "./DestinationCard";
-
-import alaska from "../../assets/alaska.jpg";
-import { tours } from "../data/tours";
-
-const destinationCards = tours.slice(0, 4);
+import { getTours } from "../data/tours";
 
 export default function PopularCities() {
+  const [tourItems, setTourItems] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    let isMounted = true;
+
+    async function loadTours() {
+      try {
+        setError("");
+
+        const data = await getTours();
+
+        if (isMounted) {
+          setTourItems(
+            Array.isArray(data) ? data : []
+          );
+        }
+      } catch (err) {
+        console.error("Gagal mengambil paket:", err);
+
+        if (isMounted) {
+          setTourItems([]);
+          setError("Paket wisata gagal dimuat.");
+        }
+      } finally {
+        if (isMounted) {
+          setLoading(false);
+        }
+      }
+    }
+
+    void loadTours();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  const destinationCards = [...tourItems]
+    .sort((a, b) => {
+      const reviewDiff = Number(b.reviews || 0) - Number(a.reviews || 0);
+      if (reviewDiff !== 0) return reviewDiff;
+      return Number(b.rating || 0) - Number(a.rating || 0);
+    })
+    .slice(0, 4);
+
+  if (loading) {
+    return <p>Memuat destinasi...</p>;
+  }
+
+  if (error) {
+    return <p>{error}</p>;
+  }
+
   return (
     <section className="popular-cities-section">
-      <div className="popular-bg-glow-left"></div>
-      <div className="popular-bg-glow-right"></div>
-
-      <div className="popular-header">
-        <span className="popular-mini-title">POPULAR DESTINATIONS</span>
-
-        <h2 className="popular-main-title">Explore Beautiful Cities</h2>
-
-        <p className="popular-description">
-          Discover incredible places around the world with premium travel
-          experiences and unforgettable adventures.
-        </p>
-      </div>
-
-      <div className="popular-filter-wrapper">
-        {[
-          "New York",
-          "California",
-          "Alaska",
-          "Sydney",
-          "Dubai",
-          "London",
-          "Tokyo",
-          "Delhi",
-        ].map((city) => (
-          <button key={city} type="button" className="popular-filter-btn">
-            {city}
-          </button>
-        ))}
-      </div>
-
-      <div className="featured-city-wrapper">
-        <div className="featured-city-image-container">
-          <img src={alaska} alt="Alaska" className="featured-city-image" />
-
-          <div className="featured-city-overlay"></div>
-
-          <div className="featured-city-content">
-            <span className="featured-badge">Featured Destination</span>
-
-            <h2 className="featured-city-title">Alaska</h2>
-
-            <p className="featured-city-text">
-              Explore breathtaking mountains, glaciers, wildlife, and
-              unforgettable adventure tours.
-            </p>
-
-            <div className="featured-buttons">
-              <Link to="/destinations" className="featured-primary-btn">
-                Explore Now
-              </Link>
-
-              <Link to="/destinations" className="featured-circle-btn">
-                →
-              </Link>
-            </div>
-          </div>
-        </div>
-
-        <div className="featured-features-grid">
-          {[
-            "Public Transportation",
-            "Nature & Adventure",
-            "Private Transportation",
-            "Business Tours",
-            "Local Visit",
-            "Mountain Hiking",
-          ].map((item) => (
-            <div key={item} className="feature-card">
-              <div className="feature-icon">✓</div>
-              <span>{item}</span>
-            </div>
-          ))}
-        </div>
-      </div>
-
       <div className="popular-destination-grid">
         {destinationCards.map((item) => (
           <DestinationCard

@@ -1,15 +1,37 @@
-import React from "react";
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 function Hero() {
+  const navigate = useNavigate();
+  const [location, setLocation] = useState("");
+  const [guests, setGuests] = useState("");
+  const [date, setDate] = useState("");
+
+  function handleSearch(event) {
+    event.preventDefault();
+
+    const params = new URLSearchParams();
+
+    if (location.trim()) {
+      params.set("location", location.trim());
+    }
+
+    if (guests) {
+      params.set("guests", guests);
+    }
+
+    if (date) {
+      params.set("date", date);
+    }
+
+    navigate(`/destinations${params.toString() ? `?${params.toString()}` : ""}`);
+  }
+
   return (
     <section className="hero">
-
-      {/* Background */}
       <div className="hero-overlay"></div>
 
-      {/* Content */}
       <div className="hero-content">
-
         <span className="hero-badge">
           Explore The World
         </span>
@@ -25,37 +47,47 @@ function Hero() {
           and amazing adventures around the world with the best
           travel packages for your next journey.
         </p>
-
       </div>
 
-      {/* Search Box */}
-      <div className="hero-search-box">
-
+      <form className="hero-search-box" onSubmit={handleSearch}>
         <div className="hero-search-item">
           <span>Location</span>
-          <input type="text" placeholder="Search destination" />
+          <input
+            type="text"
+            placeholder="Search destination"
+            value={location}
+            onChange={(event) => setLocation(event.target.value)}
+          />
         </div>
 
         <div className="hero-search-divider"></div>
 
         <div className="hero-search-item">
           <span>Guests</span>
-          <input type="text" placeholder="2 Guests" />
+          <input
+            type="number"
+            min="1"
+            placeholder="2 Guests"
+            value={guests}
+            onChange={(event) => setGuests(event.target.value)}
+          />
         </div>
 
         <div className="hero-search-divider"></div>
 
         <div className="hero-search-item">
           <span>Date</span>
-          <input type="text" placeholder="Select date" />
+          <input
+            type="date"
+            value={date}
+            onChange={(event) => setDate(event.target.value)}
+          />
         </div>
 
-        <button className="hero-search-btn">
+        <button type="submit" className="hero-search-btn">
           Search
         </button>
-
-      </div>
-
+      </form>
     </section>
   );
 }

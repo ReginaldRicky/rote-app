@@ -1,98 +1,271 @@
+import { useEffect, useMemo, useState } from "react";
+import { useSearchParams } from "react-router-dom";
+
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import PageHeader from "../components/PageHeader";
 
 import FilterSidebar from "../components/FilterSidebar";
 import ActivityCard from "../components/ActivityCard";
-import SpecialsCard from "../components/SpecialsCard";
 import GallerySection from "../components/GallerySection";
 
-import { tours } from "../data/tours";
+import { getTours } from "../data/tours";
 
-import specials1 from "../../assets/specials1.jpg";
-import specials2 from "../../assets/specials2.jpg";
-import specials3 from "../../assets/specials3.jpg";
-import specials4 from "../../assets/specials4.jpg";
+const emptyFilters = {
+  keyword: "",
+  priceRange: "",
+  minRating: "",
+  groupSize: "",
+};
 
-const categoryCards = [
-  { label: "WATER ACTIVITIES", color: "#b6e8d6" },
-  { label: "SPECIAL FOODS", color: "#b6e8d6" },
-  { label: "RIVER ACTIVITY", color: "#f8c4c4" },
-];
+function getPriceValue(item) {
+  return Number(item?.rawPrice ?? item?.priceValue ?? 0);
+}
 
-const cardItems = [
-  { image: specials1, title: "Alaska: Westminster to Greenwich River Thames" },
-  { image: specials2, title: "Alaska: Vintage Double Decker Bus Tour & Thames" },
-  { image: specials3, title: "Alaska: Magic of London Tour with Afternoon Tea" },
-  { image: specials4, title: "Alaska: Private City Tour with Local Guide" },
-];
+function getCapacityValue(item) {
+  return Number(item?.participant_limit ?? item?.participants ?? 0);
+}
+
+function matchesPrice(item, priceRange) {
+  if (!priceRange) return true;
+
+  const price = getPriceValue(item);
+
+  if (priceRange === "under-1m") return price < 1_000_000;
+  if (priceRange === "1m-3m") return price >= 1_000_000 && price <= 3_000_000;
+  if (priceRange === "3m-5m") return price > 3_000_000 && price <= 5_000_000;
+  if (priceRange === "above-5m") return price > 5_000_000;
+
+  return true;
+}
+
+function matchesRating(item, minRating) {
+  if (!minRating) return true;
+  return Number(item.rating || 0) >= Number(minRating);
+}
+
+function matchesGroupSize(item, groupSize) {
+  if (!groupSize) return true;
+
+  const capacity = getCapacityValue(item);
+
+  if (capacity <= 0) return true;
+  if (groupSize === "1-2") return capacity >= 2;
+  if (groupSize === "3-5") return capacity >= 5;
+  if (groupSize === "6-10") return capacity >= 10;
+  if (groupSize === "10-plus") return capacity >= 11;
+
+  return true;
+}
+
+function matchesKeyword(item, keyword) {
+  const normalizedKeyword = keyword.trim().toLowerCase();
+
+  if (!normalizedKeyword) return true;
+
+  const searchableText = [
+    item.title,
+    item.location,
+    item.description,
+    item.duration,
+    item.category,
+    ...(item.includes || []),
+    ...(item.schedule || []).map((schedule) => `${schedule.title} ${schedule.activity}`),
+  ]
+    .join(" ")
+    .toLowerCase();
+
+  return searchableText.includes(normalizedKeyword);
+}
+
+function sortTours(items, sortType) {
+  const sorted = [...items];
+
+  switch (sortType) {
+    case "rating-high":
+      return sorted.sort((a, b) => Number(b.rating || 0) - Number(a.rating || 0));
+
+    case "price-low":
+      return sorted.sort((a, b) => getPriceValue(a) - getPriceValue(b));
+
+    case "price-high":
+      return sorted.sort((a, b) => getPriceValue(b) - getPriceValue(a));
+
+    case "popular":
+    default:
+      return sorted.sort((a, b) => {
+        const reviewDiff = Number(b.reviews || 0) - Number(a.reviews || 0);
+        if (reviewDiff !== 0) return reviewDiff;
+        return Number(b.rating || 0) - Number(a.rating || 0);
+      });
+  }
+}
 
 export default function DestinationsPage() {
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [tourItems, setTourItems] = useState([]);
+  const [sortType, setSortType] = useState("popular");
+  const [filters, setFilters] = useState(() => ({
+    ...emptyFilters,
+    keyword: searchParams.get("location") || searchParams.get("q") || "",
+    groupSize: searchParams.get("guests") ? "" : "",
+  }));
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    let active = true;
+
+    async function loadTours() {
+      try {
+        setLoading(true);
+        setError("");
+
+        const data = await getTours();
+
+        if (active) {
+          setTourItems(Array.isArray(data) ? data : []);
+        }
+      } catch (err) {
+        console.error(err);
+
+        if (active) {
+          setError(
+            err.response?.data?.message ||
+              "Data paket gagal dimuat."
+          );
+        }
+      } finally {
+        if (active) {
+          setLoading(false);
+        }
+      }
+    }
+
+    loadTours();
+
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  const filteredTours = useMemo(() => {
+    return tourItems.filter((item) => {
+      return (
+        matchesKeyword(item, filters.keyword) &&
+        matchesPrice(item, filters.priceRange) &&
+        matchesRating(item, filters.minRating) &&
+        matchesGroupSize(item, filters.groupSize)
+      );
+    });
+  }, [tourItems, filters]);
+
+  const sortedTours = useMemo(() => {
+    return sortTours(filteredTours, sortType);
+  }, [filteredTours, sortType]);
+
+  const activeFilterCount = useMemo(() => {
+    return Object.values(filters).filter(Boolean).length;
+  }, [filters]);
+
+  function updateFilter(key, value) {
+    setFilters((current) => ({
+      ...current,
+      [key]: value,
+    }));
+  }
+
+  function resetFilters() {
+    setFilters(emptyFilters);
+    setSortType("popular");
+    setSearchParams({});
+  }
+
   return (
     <div className="min-h-screen bg-white destinations-page">
       <Navbar />
 
       <PageHeader
-        title="Things To Do In London"
-        subtitle={`${tours.length} Activities Found`}
+        title="Explore Destinations"
+        subtitle={`${sortedTours.length} of ${tourItems.length} Activities Found`}
+        breadcrumbs={[
+          { label: "Home", to: "/dashboard" },
+          { label: "Destinations" },
+        ]}
       >
         <div className="destinations-sort">
+          {activeFilterCount > 0 && (
+            <button
+              type="button"
+              className="filter-show-more"
+              onClick={resetFilters}
+            >
+              Clear {activeFilterCount} Filter{activeFilterCount > 1 ? "s" : ""}
+            </button>
+          )}
+
           <span>Sort by:</span>
 
-          <select className="destinations-sort-select">
-            <option>Popularity</option>
-            <option>Price: Low to High</option>
-            <option>Price: High to Low</option>
-            <option>Rating</option>
+          <select
+            className="destinations-sort-select"
+            value={sortType}
+            onChange={(event) => setSortType(event.target.value)}
+          >
+            <option value="popular">Popularity</option>
+            <option value="rating-high">Highest Rating</option>
+            <option value="price-low">Price: Low to High</option>
+            <option value="price-high">Price: High to Low</option>
           </select>
         </div>
       </PageHeader>
 
       <section className="destinations-listing">
-        <FilterSidebar />
+        <FilterSidebar
+          filters={filters}
+          onFilterChange={updateFilter}
+          onResetFilters={resetFilters}
+        />
 
         <div className="destinations-results">
-          {tours.map((item) => (
-            <ActivityCard key={item.id} item={item} />
+          {loading && (
+            <p className="py-8 text-center">
+              Memuat paket wisata...
+            </p>
+          )}
+
+          {error && (
+            <p className="py-8 text-center text-red-500">
+              {error}
+            </p>
+          )}
+
+          {!loading && !error && sortedTours.map((item) => (
+            <ActivityCard
+              key={item.id}
+              item={item}
+            />
           ))}
 
-          <button type="button" className="load-more-btn">
-            Load More
-          </button>
-        </div>
-      </section>
+          {!loading && !error && sortedTours.length === 0 && (
+            <div className="rounded-3xl border border-dashed border-[#dfe7ef] bg-white p-8 text-center text-gray-500">
+              <h3 className="mb-2 text-xl font-bold text-[#181e4b]">
+                Package tidak ditemukan
+              </h3>
 
-      <section className="specials-section">
-        <h2 className="specials-main-title">Outside The City Specials</h2>
+              <p>
+                Coba ubah keyword, budget, rating, atau group size filter.
+              </p>
 
-        {categoryCards.map((cat) => (
-          <div key={cat.label} className="specials-category">
-            <div className="specials-category-header">
-              <span
-                className="specials-badge"
-                style={{ backgroundColor: cat.color }}
+              <button
+                type="button"
+                className="mt-5 rounded-full bg-[#AAB700] px-6 py-3 font-bold text-white"
+                onClick={resetFilters}
               >
-                {cat.label}
-              </span>
-
-              <div className="specials-nav-arrows">
-                <button type="button" className="specials-arrow-btn">
-                  ‹
-                </button>
-
-                <button type="button" className="specials-arrow-btn">
-                  ›
-                </button>
-              </div>
+                Reset Filters
+              </button>
             </div>
-
-            <div className="specials-grid">
-              {cardItems.map((item) => (
-                <SpecialsCard key={`${cat.label}-${item.title}`} item={item} />
-              ))}
-            </div>
-          </div>
-        ))}
+          )}
+        </div>
       </section>
 
       <GallerySection />

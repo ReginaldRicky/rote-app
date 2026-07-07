@@ -1,3 +1,5 @@
+import { Link } from "react-router-dom";
+
 import g1 from "../../assets/gallery1.jpg";
 import g2 from "../../assets/gallery2.jpg";
 import g3 from "../../assets/gallery3.jpg";
@@ -8,110 +10,53 @@ import g7 from "../../assets/gallery7.jpg";
 import g8 from "../../assets/gallery8.jpg";
 
 const gallery = [
-  {
-    image: g1,
-    title: "Bali Beach",
-    location: "Indonesia",
-  },
-  {
-    image: g2,
-    title: "Tokyo Night",
-    location: "Japan",
-  },
-  {
-    image: g3,
-    title: "Swiss Mountain",
-    location: "Switzerland",
-  },
-  {
-    image: g4,
-    title: "Paris City",
-    location: "France",
-  },
-  {
-    image: g5,
-    title: "Santorini",
-    location: "Greece",
-  },
-  {
-    image: g6,
-    title: "Dubai Desert",
-    location: "UAE",
-  },
-  {
-    image: g7,
-    title: "New York",
-    location: "USA",
-  },
-  {
-    image: g8,
-    title: "Seoul Street",
-    location: "Korea",
-  },
+  { image: g1, title: "Bali Beach", location: "Indonesia" },
+  { image: g2, title: "Tokyo Night", location: "Japan" },
+  { image: g3, title: "Swiss Mountain", location: "Switzerland" },
+  { image: g4, title: "Paris City", location: "France" },
+  { image: g5, title: "Santorini", location: "Greece" },
+  { image: g6, title: "Dubai Desert", location: "UAE" },
+  { image: g7, title: "New York", location: "USA" },
+  { image: g8, title: "Seoul Street", location: "Korea" },
 ];
 
 export default function GallerySection() {
   return (
     <section className="py-24 px-8 lg:px-20 bg-white">
-
       <div className="flex flex-col lg:flex-row justify-between lg:items-center mb-14 gap-6">
-
         <div>
           <h2 className="text-5xl font-bold text-[#181e4b] mb-4">
             From The Gallery
           </h2>
 
           <p className="text-gray-500 text-lg">
-            Explore beautiful travel moments around the world
+            Klik gambar untuk mencari paket dengan lokasi atau vibe serupa.
           </p>
         </div>
 
-        <button
-          className="
-            bg-[#181e4b]
-            hover:bg-[#2d356f]
-            text-white
-            px-7 py-4
-            rounded-xl
-            transition duration-300
-            shadow-lg
-          "
+        <Link
+          to="/destinations"
+          className="bg-[#181e4b] hover:bg-[#2d356f] text-white px-7 py-4 rounded-xl transition duration-300 shadow-lg"
         >
-          View All Images
-        </button>
+          View All Packages
+        </Link>
       </div>
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
-
-        {gallery.map((item, index) => (
-          <div
-            key={index}
-            className="
-              relative overflow-hidden rounded-3xl
-              group cursor-pointer
-              shadow-xl
-            "
+        {gallery.map((item) => (
+          <Link
+            key={item.title}
+            to={`/destinations?location=${encodeURIComponent(item.location)}`}
+            className="relative overflow-hidden rounded-3xl group cursor-pointer shadow-xl"
+            style={{ textDecoration: "none" }}
           >
             <img
               src={item.image}
               alt={item.title}
-              className="
-                w-full h-[320px]
-                object-cover
-                group-hover:scale-110
-                transition duration-500
-              "
+              className="w-full h-[320px] object-cover group-hover:scale-110 transition duration-500"
             />
 
-            <div
-              className="
-                absolute inset-0
-                bg-gradient-to-t
-                from-black/70
-                via-black/20
-                to-transparent
-              "
-            />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
 
             <div className="absolute bottom-5 left-5 text-white">
               <h3 className="text-xl font-semibold">
@@ -122,11 +67,9 @@ export default function GallerySection() {
                 {item.location}
               </p>
             </div>
-          </div>
+          </Link>
         ))}
-
       </div>
-
     </section>
   );
 }

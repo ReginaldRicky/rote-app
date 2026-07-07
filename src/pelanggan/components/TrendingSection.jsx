@@ -1,180 +1,145 @@
+import { useEffect, useMemo, useState } from "react";
+import { Link } from "react-router-dom";
+
 import trendingImage from "../../assets/gallery8.jpg";
+import { getTours } from "../data/tours";
+
+function getTopTour(items) {
+  if (!items.length) return null;
+
+  return [...items].sort((a, b) => {
+    const ratingDiff = Number(b.rating || 0) - Number(a.rating || 0);
+    if (ratingDiff !== 0) return ratingDiff;
+    return Number(b.reviews || 0) - Number(a.reviews || 0);
+  })[0];
+}
 
 export default function TrendingSection() {
+  const [tours, setTours] = useState([]);
+
+  useEffect(() => {
+    let active = true;
+
+    async function loadTrendingPackage() {
+      try {
+        const data = await getTours();
+        if (active) setTours(Array.isArray(data) ? data : []);
+      } catch (error) {
+        console.error("TRENDING PACKAGE ERROR:", error.response?.data || error);
+      }
+    }
+
+    loadTrendingPackage();
+
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  const topTour = useMemo(() => getTopTour(tours), [tours]);
+  const image = topTour?.image || trendingImage;
+  const detailUrl = topTour?.id ? `/detail/${topTour.id}` : "/destinations";
+  const totalReviews = tours.reduce((sum, item) => sum + Number(item.reviews || 0), 0);
+  const averageRating = tours.length
+    ? tours.reduce((sum, item) => sum + Number(item.rating || 0), 0) / tours.length
+    : 4.9;
+
   return (
     <section className="trending-wrapper">
-
-      {/* BACKGROUND */}
-
       <div className="trending-bg"></div>
-
       <div className="trending-glow-left"></div>
       <div className="trending-glow-right"></div>
 
-      {/* CONTENT */}
-
       <div className="trending-container">
-
-        {/* IMAGE SECTION */}
-
         <div className="trending-image-section">
-
           <div className="circle-decoration-one"></div>
           <div className="circle-decoration-two"></div>
 
-          {/* PRICE CARD */}
-
           <div className="floating-price-card">
-
             <p className="floating-label">
               Starting From
             </p>
 
             <h3 className="floating-price">
-              $299
+              {topTour?.price || "Rp0"}
             </h3>
-
           </div>
 
-          {/* IMAGE */}
-
-          <div className="trending-image-wrapper">
-
+          <Link to={detailUrl} className="trending-image-wrapper">
             <div className="trending-image-glow"></div>
 
             <img
-              src={trendingImage}
-              alt="Trending Destination"
+              src={image}
+              alt={topTour?.title || "Trending Destination"}
               className="trending-main-image"
             />
-
-          </div>
-
-          {/* REVIEW CARD */}
+          </Link>
 
           <div className="floating-review-card">
-
             <div className="review-stars">
               ★★★★★
             </div>
 
             <span className="review-rating">
-              4.9 Rating
+              {Number(topTour?.rating || averageRating || 0).toFixed(1)} Rating
             </span>
 
             <p className="review-text">
-              2.5k Happy Travelers
+              {totalReviews || topTour?.reviews || 0} Reviews
             </p>
-
           </div>
-
         </div>
 
-        {/* TEXT SECTION */}
-
         <div className="trending-text-section">
-
-          {/* BADGE */}
-
           <div className="trending-badge">
-
             <div className="badge-dot"></div>
 
             <span>
               TRENDING DESTINATION
             </span>
-
           </div>
-
-          {/* TITLE */}
 
           <h2 className="trending-heading">
-
-            Discover The
-
+            {topTour ? "Discover The" : "Discover More"}
             <br />
-
             <span>
-              Wilderlife
+              {topTour?.title || "Travel Package"}
             </span>
-
-            <br />
-
-            Of Alaska
-
           </h2>
 
-          {/* DESCRIPTION */}
-
           <p className="trending-description">
-
-            Experience breathtaking mountains,
-            frozen landscapes, wildlife adventures,
-            and unforgettable memories across the
-            beautiful lands of Alaska.
-
+            {topTour?.description ||
+              "Explore curated travel packages, compare prices, check available dates, and book directly from the destination page."}
           </p>
 
-          {/* STATS */}
-
           <div className="trending-stats">
-
             <div>
-
-              <h3>
-                25K+
-              </h3>
-
-              <p>
-                Happy Travelers
-              </p>
-
+              <h3>{tours.length || 0}</h3>
+              <p>Active Packages</p>
             </div>
 
             <div>
-
-              <h3>
-                120+
-              </h3>
-
-              <p>
-                Tour Destinations
-              </p>
-
+              <h3>{topTour?.participant_limit || topTour?.participants || 0}</h3>
+              <p>Max Guests</p>
             </div>
 
             <div>
-
-              <h3>
-                4.9
-              </h3>
-
-              <p>
-                Average Rating
-              </p>
-
+              <h3>{Number(averageRating || 0).toFixed(1)}</h3>
+              <p>Average Rating</p>
             </div>
-
           </div>
-
-          {/* BUTTONS */}
 
           <div className="trending-buttons">
-
-            <button className="trending-primary-btn">
+            <Link to={detailUrl} className="trending-primary-btn">
               Explore Now
-            </button>
+            </Link>
 
-            <button className="trending-circle-btn">
+            <Link to="/destinations" className="trending-circle-btn">
               →
-            </button>
-
+            </Link>
           </div>
-
         </div>
-
       </div>
-
     </section>
   );
 }

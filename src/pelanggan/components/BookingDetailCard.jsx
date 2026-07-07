@@ -9,6 +9,7 @@ import {
   FiUser,
   FiUsers,
 } from "react-icons/fi";
+import BookingWhatsAppAction from "./BookingWhatsAppAction";
 
 import BookingDetailInfoItem from "./BookingDetailInfoItem";
 
@@ -87,7 +88,7 @@ export default function BookingDetailCard({
             </div>
 
             <div className="booking-detail-premium-total">
-              <span>Total Payment</span>
+              <span>Total Price</span>
               <strong>{booking.totalPrice || "-"}</strong>
             </div>
           </div>
@@ -177,16 +178,28 @@ export default function BookingDetailCard({
       </div>
 
       <section className="booking-detail-premium-note">
-        <div className="booking-detail-premium-note-number">03</div>
-
-        <div>
-          <span>Additional Request</span>
-          <h2>Customer Note</h2>
-
-          <p>
-            {booking.note || "No additional note was provided for this booking."}
-          </p>
+        
+        <div className="booking-detail-premium-note-badge">
+          03
         </div>
+
+        <div className="booking-detail-premium-note-content">
+
+          <span className="booking-detail-premium-note-label">
+            Additional Request
+          </span>
+
+          <h2 className="booking-detail-premium-note-title">
+            Customer Note
+          </h2>
+
+
+        </div>
+
+        <div className="booking-detail-premium-note-action">
+          <BookingWhatsAppAction booking={booking} />
+        </div>
+
       </section>
     </article>
   );

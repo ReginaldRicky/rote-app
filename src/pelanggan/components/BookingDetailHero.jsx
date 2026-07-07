@@ -66,7 +66,7 @@ export default function BookingDetailHero({ booking }) {
 
             <div className="bg-[#AAB700]/10 border border-[#AAB700]/20 rounded-2xl p-5">
               <span className="text-sm text-gray-500">
-                Total Payment
+                Total Price
               </span>
 
               <p className="text-2xl font-bold text-[#AAB700] mt-1">

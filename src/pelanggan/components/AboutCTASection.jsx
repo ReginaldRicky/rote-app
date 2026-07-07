@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import alaskaImage from "../../assets/alaska.jpg";
+import alaskaImage from "../../assets/Alaska.jpg";
 
 export default function AboutCTASection() {
   return (

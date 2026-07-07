@@ -1,15 +1,15 @@
 import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-
+import { createBooking } from "../services/bookingService";
+import { BUSINESS_WHATSAPP_NUMBER, createWhatsAppUrl } from "./WhatsAppButton";
+import { formatIDR } from "../../utils/formatter";
 import BookingForm from "./BookingForm";
 import BookingSummary from "./BookingSummary";
-import { formatUSD, parsePrice } from "../data/tours";
-
-const BOOKINGS_KEY = "customerBookings";
 
 export default function BookingCheckout({ tour }) {
   const navigate = useNavigate();
   const today = getLocalDate();
+
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -22,19 +22,21 @@ export default function BookingCheckout({ tour }) {
     note: "",
   });
 
+  const basePrice = useMemo(() => {
+    return Number(tour?.priceValue ?? tour?.rawPrice ?? tour?.price ?? 0);
+  }, [tour]);
+
   const totalPrice = useMemo(() => {
-    const price = parsePrice(tour.price);
     const guests = Number(formData.guests || 1);
+    return basePrice * guests;
+  }, [basePrice, formData.guests]);
 
-    return formatUSD(price * guests);
-  }, [tour.price, formData.guests]);
-
-  function getBookings() {
-    try {
-      return JSON.parse(localStorage.getItem(BOOKINGS_KEY) || "[]");
-    } catch {
-      return [];
-    }
+  if (!tour) {
+    return (
+      <div className="p-10 text-center text-gray-500">
+        Loading destination data...
+      </div>
+    );
   }
 
   function getLocalDate() {
@@ -57,7 +59,33 @@ export default function BookingCheckout({ tour }) {
     setError("");
   }
 
-  function handleSubmit(e) {
+  function buildBookingWhatsAppMessage(bookingData) {
+    const booking = bookingData?.data || bookingData || {};
+    const packageTitle = booking.package?.title || tour?.title || "-";
+    const bookingId = booking.id || "-";
+    const guests = booking.guest_count || formData.guests || "-";
+    const tripDate = booking.trip_date || formData.date || "-";
+    const total = booking.total_price || totalPrice;
+
+    return `Halo Nick's Holiday,
+
+Saya sudah membuat booking dan ingin konfirmasi lewat WhatsApp.
+
+Booking ID: ${bookingId}
+Package: ${packageTitle}
+Nama: ${formData.fullName}
+Email: ${formData.email}
+Nomor HP: ${formData.phone}
+Tanggal Travel: ${tripDate}
+Jumlah Tamu: ${guests}
+Total Harga: ${formatIDR(total)}
+
+Catatan: ${formData.note || "-"}
+
+Mohon bantu konfirmasi booking saya ya.`;
+  }
+
+  async function handleSubmit(e) {
     e.preventDefault();
 
     const fullName = formData.fullName.trim();
@@ -65,70 +93,56 @@ export default function BookingCheckout({ tour }) {
     const phone = formData.phone.trim();
     const guests = Number(formData.guests);
 
-    if (!fullName) {
-      setError("Full name wajib diisi.");
-      return;
-    }
-
-    if (!email) {
-      setError("Email wajib diisi.");
-      return;
-    }
-
-    if (!phone) {
-      setError("Nomor telepon wajib diisi.");
-      return;
-    }
-
-    if (!guests || guests < 1) {
-      setError("Jumlah tamu minimal 1.");
-      return;
-    }
-
-    if (!formData.date) {
-      setError("Tanggal booking wajib dipilih.");
-      return;
-    }
-
+    if (!fullName) return setError("Full name wajib diisi.");
+    if (!email) return setError("Email wajib diisi.");
+    if (!phone) return setError("Nomor telepon wajib diisi.");
+    if (!guests || guests < 1) return setError("Jumlah tamu minimal 1.");
+    if (!formData.date) return setError("Tanggal wajib dipilih.");
     if (formData.date < today) {
-      setError("Tanggal booking tidak boleh sebelum hari ini.");
-      return;
+      return setError("Tanggal tidak boleh sebelum hari ini.");
+    }
+
+    const participantLimit = Number(tour?.participant_limit || tour?.participants || 0);
+
+    if (participantLimit > 0 && guests > participantLimit) {
+      return setError(
+        `Jumlah tamu tidak boleh lebih dari ${participantLimit} peserta.`
+      );
     }
 
     setLoading(true);
 
-  const currentUserId = localStorage.getItem("currentUserId");
+    try {
+      const bookingResponse = await createBooking({
+        package_id: tour.id,
+        full_name: formData.fullName,
+        email: formData.email,
+        phone: formData.phone,
+        guest_count: guests,
+        trip_date: formData.date,
+        note: formData.note,
+      });
 
-  const newBooking = {
-    bookingId: `BK-${Date.now()}`,
-    customerId: currentUserId,
-    tourId: tour.id,
-    tourTitle: tour.title,
-    tourImage: tour.image,
-    location: tour.location,
-    pricePerPerson: tour.price,
-    totalPrice,
-    fullName,
-    email,
-    phone,
-    guests,
-    date: formData.date,
-    note: formData.note.trim(),
-    status: "Waiting Confirmation",
-    createdAt: new Date().toISOString(),
-  };
+      const whatsappUrl = createWhatsAppUrl(
+        BUSINESS_WHATSAPP_NUMBER,
+        buildBookingWhatsAppMessage(bookingResponse)
+      );
 
-    const bookings = getBookings();
+      if (whatsappUrl) {
+        window.open(whatsappUrl, "_blank", "noopener,noreferrer");
+      }
 
-    localStorage.setItem(
-      BOOKINGS_KEY,
-      JSON.stringify([newBooking, ...bookings])
-    );
-
-    setTimeout(() => {
-      setLoading(false);
       navigate("/bookings");
-    }, 500);
+    } catch (err) {
+      console.error(err.response?.data || err);
+
+      setError(
+        err.response?.data?.message ||
+          "Gagal membuat booking. Coba lagi."
+      );
+    } finally {
+      setLoading(false);
+    }
   }
 
   return (

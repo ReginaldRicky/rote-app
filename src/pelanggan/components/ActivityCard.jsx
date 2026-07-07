@@ -12,11 +12,17 @@ export default function ActivityCard({ item }) {
       style={{ textDecoration: "none", color: "inherit" }}
     >
       <div className="activity-card">
-        <img
-          src={item.image}
-          alt={item.title}
-          className="activity-card-image"
-        />
+        {item.image ? (
+          <img
+            src={item.image}
+            alt={item.title}
+            className="activity-card-image"
+          />
+        ) : (
+          <div className="activity-card-image flex items-center justify-center bg-gradient-to-br from-[#181e4b] to-[#AAB700] text-white font-bold">
+            {item.title}
+          </div>
+        )}
 
         <div className="activity-card-body">
           <div className="activity-card-top">

@@ -1,102 +1,145 @@
 import { useState } from "react";
+import {
+  Link,
+  useLocation,
+  useNavigate,
+} from "react-router-dom";
 import { FiUser, FiLock } from "react-icons/fi";
-import { Link, useNavigate } from "react-router-dom";
 
-const USERS_KEY = "registeredCustomers";
+import { loginCustomer } from "../services/customerAuthService";
+import { loginAdmin } from "../../admin/services/adminAuthService";
+
+function getCustomerDestination(location) {
+  const from = location.state?.from;
+
+  if (typeof from === "string" && !from.startsWith("/admin")) {
+    return from;
+  }
+
+  return "/dashboard";
+}
+
+function getAdminDestination(location) {
+  const from = location.state?.from;
+
+  if (typeof from === "string" && from.startsWith("/admin")) {
+    return from;
+  }
+
+  if (from?.pathname?.startsWith("/admin")) {
+    return `${from.pathname}${from.search || ""}`;
+  }
+
+  return "/admin";
+}
+
+function extractLoginError(err) {
+  const validationErrors = err.response?.data?.errors;
+
+  if (validationErrors) {
+    const firstError = Object.values(validationErrors)
+      .flat()
+      .find(Boolean);
+
+    if (firstError) return firstError;
+  }
+
+  return (
+    err.response?.data?.message ||
+    err.message ||
+    "Email atau password tidak sesuai."
+  );
+}
 
 export default function LoginForm() {
   const navigate = useNavigate();
+  const location = useLocation();
+
+  const [dataForm, setDataForm] = useState({
+    email: "",
+    password: "",
+  });
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  const [dataForm, setDataForm] = useState({
-    username: "",
-    password: "",
-  });
+  function handleChange(event) {
+    const { name, value } = event.target;
 
-  function getUsers() {
-    try {
-      return JSON.parse(localStorage.getItem(USERS_KEY) || "[]");
-    } catch {
-      return [];
-    }
-  }
-
-  function handleChange(e) {
-    const { name, value } = e.target;
-
-    setDataForm((prev) => ({
-      ...prev,
+    setDataForm((current) => ({
+      ...current,
       [name]: value,
     }));
 
     setError("");
   }
 
-  function handleSubmit(e) {
-    e.preventDefault();
+  async function handleSubmit(event) {
+    event.preventDefault();
+
     setError("");
 
-    const credential = dataForm.username.trim();
+    const email = dataForm.email.trim().toLowerCase();
     const password = dataForm.password;
 
-    if (!credential || !password) {
-      setError("Username/email dan password wajib diisi.");
+    if (!email || !password) {
+      setError("Email dan password wajib diisi.");
       return;
     }
 
     setLoading(true);
 
-    const users = getUsers();
+    try {
+      try {
+        await loginCustomer({ email, password });
 
-    const foundUser = users.find((user) => {
-      const sameUsername =
-        user.username?.toLowerCase() === credential.toLowerCase();
-      const sameEmail =
-        user.email?.toLowerCase() === credential.toLowerCase();
+        navigate(getCustomerDestination(location), {
+          replace: true,
+        });
 
-      return (sameUsername || sameEmail) && user.password === password;
-    });
+        return;
+      } catch (customerError) {
+        const adminResult = await loginAdmin(email, password);
 
-    if (!foundUser) {
+        if (adminResult.success) {
+          navigate(getAdminDestination(location), {
+            replace: true,
+          });
+
+          return;
+        }
+
+        throw new Error(
+          extractLoginError(customerError) || adminResult.message
+        );
+      }
+    } catch (err) {
+      console.error("Login gagal:", err);
+      setError(
+        err.message ||
+          "Login gagal. Pastikan email dan password sudah benar."
+      );
+    } finally {
       setLoading(false);
-      setError("Login gagal. Periksa username/email dan password.");
-      return;
     }
-
-    localStorage.setItem("accessToken", `local-token-${foundUser.id}`);
-    localStorage.setItem("username", foundUser.username);
-    localStorage.setItem("currentUserId", foundUser.id);
-    localStorage.setItem("email", foundUser.email);
-
-    if (foundUser.avatar) {
-      localStorage.setItem("avatar", foundUser.avatar);
-    } else {
-      localStorage.removeItem("avatar");
-    }
-
-    window.dispatchEvent(new Event("auth-change"));
-
-    setLoading(false);
-    navigate("/dashboard");
   }
 
   return (
-    <form className="w-full" onSubmit={handleSubmit}>
+    <form
+      className="w-full"
+      onSubmit={handleSubmit}
+    >
       <h1 className="text-4xl font-poppins-medium text-gray-800 mb-4">
         Sign in
       </h1>
 
       <p className="text-gray-500 text-sm leading-6 mb-10 font-poppins-regular">
-        If you don&apos;t have an account
-        <br />
-        You can
+        Anda harus login terlebih dahulu untuk dapat melakukan booking.
         <Link
           to="/register"
           className="text-blue-500 font-poppins-semibold ml-1"
         >
-          Register here !
+          Register here!
         </Link>
       </p>
 
@@ -108,18 +151,19 @@ export default function LoginForm() {
 
       <div className="mb-6">
         <label className="block text-sm text-gray-700 mb-2 font-poppins-medium">
-          Username or Email
+          Email
         </label>
 
         <div className="flex items-center border-b border-gray-400 focus-within:border-blue-500 transition-colors duration-200">
           <FiUser className="text-gray-500 text-lg mr-3" />
 
           <input
-            type="text"
-            name="username"
-            value={dataForm.username}
+            type="email"
+            name="email"
+            value={dataForm.email}
             onChange={handleChange}
-            placeholder="Enter your username or email"
+            placeholder="Enter your email"
+            autoComplete="email"
             className="w-full outline-none py-3 text-sm font-poppins-regular bg-transparent"
           />
         </div>
@@ -139,6 +183,7 @@ export default function LoginForm() {
             value={dataForm.password}
             onChange={handleChange}
             placeholder="Enter your password"
+            autoComplete="current-password"
             className="w-full outline-none py-3 text-sm font-poppins-regular bg-transparent"
           />
         </div>
@@ -154,7 +199,7 @@ export default function LoginForm() {
           to="/forgot-password"
           className="text-blue-500 hover:underline font-poppins-light"
         >
-          Forgot Password ?
+          Forgot Password?
         </Link>
       </div>
 

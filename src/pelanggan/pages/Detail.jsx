@@ -3,40 +3,179 @@ import { Link, useParams } from "react-router-dom";
 
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
-import { getTourById, tours } from "../data/tours";
+import { getTourById, getTours } from "../data/tours";
 import DetailBookingAction from "../components/DetailBookingAction";
+import { getPackageReviews } from "../services/reviewService";
 
 function getStars(rating = 4) {
-  const roundedRating = Math.max(0, Math.min(5, Math.round(rating)));
+  const roundedRating = Math.max(0, Math.min(5, Math.round(Number(rating || 0))));
   return "★".repeat(roundedRating) + "☆".repeat(5 - roundedRating);
+}
+
+function formatDate(value) {
+  if (!value) return "-";
+
+  const date = new Date(value);
+
+  if (Number.isNaN(date.getTime())) {
+    return value;
+  }
+
+  return new Intl.DateTimeFormat("id-ID", {
+    day: "2-digit",
+    month: "long",
+    year: "numeric",
+  }).format(date);
+}
+
+function getReviewerName(review) {
+  return (
+    review?.pelanggan?.name ||
+    review?.customer?.name ||
+    review?.name ||
+    "Customer"
+  );
 }
 
 export default function Detail() {
   const { id } = useParams();
-  const tour = getTourById(id);
 
+  const [tour, setTour] = useState(null);
+  const [relatedTours, setRelatedTours] = useState([]);
+  const [reviews, setReviews] = useState([]);
   const [selectedImage, setSelectedImage] = useState("");
 
+  const [loading, setLoading] = useState(true);
+  const [reviewLoading, setReviewLoading] = useState(true);
+  const [error, setError] = useState("");
+
   useEffect(() => {
-    if (tour) {
-      setSelectedImage(tour.image);
+    let cancelled = false;
+
+    async function loadTourDetail() {
+      setLoading(true);
+      setReviewLoading(true);
+      setError("");
+
+      try {
+        const [tourData, allTours, reviewData] = await Promise.all([
+          getTourById(id),
+          getTours(),
+          getPackageReviews(id),
+        ]);
+
+        if (cancelled) {
+          return;
+        }
+
+        setTour(tourData);
+        setReviews(Array.isArray(reviewData) ? reviewData : []);
+
+        setSelectedImage(
+          tourData?.image ||
+            tourData?.thumbnail ||
+            ""
+        );
+
+        const tourList = Array.isArray(allTours)
+          ? allTours
+          : [];
+
+        setRelatedTours(
+          tourList
+            .filter((item) => String(item.id) !== String(id))
+            .slice(0, 4)
+        );
+      } catch (err) {
+        console.error("Gagal mengambil detail paket:", err);
+
+        if (!cancelled) {
+          setTour(null);
+          setRelatedTours([]);
+          setReviews([]);
+
+          setError(
+            err.response?.data?.message ||
+              "Detail paket gagal dimuat."
+          );
+        }
+      } finally {
+        if (!cancelled) {
+          setLoading(false);
+          setReviewLoading(false);
+        }
+      }
     }
-  }, [tour]);
+
+    loadTourDetail();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [id]);
 
   const galleryImages = useMemo(() => {
     if (!tour) return [];
 
-    return Array.from(new Set([tour.image, ...(tour.gallery || [])])).slice(
-      0,
-      6
+    return Array.from(
+      new Set([tour.image, ...(tour.gallery || []), ...(tour.images || [])])
+    )
+      .filter(Boolean)
+      .slice(0, 6);
+  }, [tour]);
+
+  const averageRating = useMemo(() => {
+    if (!reviews.length) return Number(tour?.rating || 0);
+
+    const total = reviews.reduce((sum, review) => {
+      return sum + Number(review.rating || 0);
+    }, 0);
+
+    return total / reviews.length;
+  }, [reviews, tour?.rating]);
+
+  if (loading) {
+    return (
+      <div className="detail-page">
+        <Navbar />
+
+        <main className="detail-container text-center py-20">
+          <p className="text-gray-600">
+            Memuat detail paket...
+          </p>
+        </main>
+
+        <Footer />
+      </div>
     );
-  }, [tour]);
+  }
 
-  const relatedTours = useMemo(() => {
-    if (!tour) return [];
+  if (error) {
+    return (
+      <div className="detail-page">
+        <Navbar />
 
-    return tours.filter((item) => item.id !== tour.id).slice(0, 4);
-  }, [tour]);
+        <main className="detail-container text-center py-20">
+          <h1 className="text-3xl font-bold text-gray-800 mb-4">
+            Detail Paket Gagal Dimuat
+          </h1>
+
+          <p className="text-red-600 mb-6">
+            {error}
+          </p>
+
+          <Link
+            to="/destinations"
+            className="inline-block bg-[#AAB700] text-white px-6 py-3 rounded-full font-semibold"
+          >
+            Kembali ke Destinations
+          </Link>
+        </main>
+
+        <Footer />
+      </div>
+    );
+  }
 
   if (!tour) {
     return (
@@ -65,6 +204,46 @@ export default function Detail() {
     );
   }
 
+  const languageList = Array.isArray(tour.language)
+    ? tour.language
+    : ["English"];
+
+  const activityList = Array.isArray(tour.activityList)
+    ? tour.activityList
+    : Array.isArray(tour.activity)
+    ? tour.activity
+    : [];
+
+  const includesList = Array.isArray(tour.includes)
+    ? tour.includes
+    : Array.isArray(tour.included)
+    ? tour.included
+    : [];
+
+  const notIncludesList = Array.isArray(tour.notIncludes)
+    ? tour.notIncludes
+    : [
+        "Personal expenses",
+        "Additional meals outside the package",
+        "Travel insurance upgrade",
+      ];
+
+  const safetyList = Array.isArray(tour.safety)
+    ? tour.safety
+    : [
+        "Professional travel guide",
+        "Emergency support during the trip",
+        "Verified accommodation and transport",
+      ];
+
+  const peopleText =
+    tour.people || tour.groupSize || `${tour.participants || 0} travelers`;
+
+  const meetingPointText =
+    tour.meetingPoint ||
+    tour.location ||
+    "Meeting point will be confirmed after booking.";
+
   return (
     <div className="detail-page">
       <Navbar />
@@ -77,31 +256,37 @@ export default function Detail() {
 
           <div className="detail-meta-top">
             <span>📍 {tour.location}</span>
-            <span className="detail-stars">{getStars(tour.rating)}</span>
-            <span>({tour.reviews} reviews)</span>
+            <span className="detail-stars">{getStars(averageRating)}</span>
+            <span>({reviews.length || tour.reviews || tour.totalReviews || 0} reviews)</span>
           </div>
 
           <div className="detail-layout">
             <div className="detail-left">
-              <img
-                src={selectedImage || tour.image}
-                alt={tour.title}
-                className="detail-hero-img"
-              />
+              {selectedImage || tour.image || tour.thumbnail ? (
+                <img
+                  src={selectedImage || tour.image || tour.thumbnail}
+                  alt={tour.title}
+                  className="detail-hero-img"
+                />
+              ) : (
+                <div className="detail-hero-img flex items-center justify-center bg-gradient-to-br from-[#181e4b] to-[#AAB700] text-white text-3xl font-bold">
+                  {tour.title}
+                </div>
+              )}
 
-          <div className="detail-thumbnails">
-            {galleryImages.map((img, index) => (
-              <img
-                key={`${img}-${index}`}
-                src={img}
-                alt={`${tour.title} thumbnail ${index + 1}`}
-                onClick={() => setSelectedImage(img)}
-                style={{ cursor: "pointer" }}
-              />
-            ))}
-          </div>
+              <div className="detail-thumbnails">
+                {galleryImages.map((img, index) => (
+                  <img
+                    key={`${img}-${index}`}
+                    src={img}
+                    alt={`${tour.title} thumbnail ${index + 1}`}
+                    onClick={() => setSelectedImage(img)}
+                    style={{ cursor: "pointer" }}
+                  />
+                ))}
+              </div>
 
-          <DetailBookingAction tour={tour} />
+              <DetailBookingAction tour={tour} />
 
               <div className="detail-feature-box">
                 <div>
@@ -131,20 +316,19 @@ export default function Detail() {
 
                 <div>
                   <h4>♟ Live Tour Guide</h4>
-                  <p>{tour.language.join(", ")}</p>
+                  <p>{languageList.join(", ")}</p>
                 </div>
               </div>
 
               <section className="detail-section">
                 <h2>Description</h2>
 
-                <p>{tour.description}</p>
+                <p>{tour.description || "No description available."}</p>
 
                 <p>
                   Continue your journey with a professional guide and enjoy a
                   comfortable travel experience. This package is designed to help
-                  customers explore the destination safely, easily, and
-                  memorably.
+                  customers explore the destination safely, easily, and memorably.
                 </p>
               </section>
 
@@ -153,8 +337,8 @@ export default function Detail() {
                 <h4>What You Will Do</h4>
 
                 <ul>
-                  {tour.activityList.map((item) => (
-                    <li key={item}>{item}</li>
+                  {activityList.map((item, index) => (
+                    <li key={`${item}-${index}`}>{item}</li>
                   ))}
                 </ul>
               </section>
@@ -167,8 +351,8 @@ export default function Detail() {
                     <h4>Includes</h4>
 
                     <ul>
-                      {tour.includes.map((item) => (
-                        <li key={item}>{item}</li>
+                      {includesList.map((item, index) => (
+                        <li key={`${item}-${index}`}>{item}</li>
                       ))}
                     </ul>
                   </div>
@@ -177,8 +361,8 @@ export default function Detail() {
                     <h4>Not Includes</h4>
 
                     <ul>
-                      {tour.notIncludes.map((item) => (
-                        <li key={item}>{item}</li>
+                      {notIncludesList.map((item, index) => (
+                        <li key={`${item}-${index}`}>{item}</li>
                       ))}
                     </ul>
                   </div>
@@ -190,8 +374,8 @@ export default function Detail() {
                 <h4>Health Precautions</h4>
 
                 <ul>
-                  {tour.safety.map((item) => (
-                    <li key={item}>{item}</li>
+                  {safetyList.map((item, index) => (
+                    <li key={`${item}-${index}`}>{item}</li>
                   ))}
                 </ul>
               </section>
@@ -203,25 +387,25 @@ export default function Detail() {
                   <div>
                     <h4>Language</h4>
 
-                    {tour.language.map((item) => (
-                      <p key={item}>{item}</p>
+                    {languageList.map((item, index) => (
+                      <p key={`${item}-${index}`}>{item}</p>
                     ))}
                   </div>
 
                   <div>
                     <h4>Duration</h4>
-                    <p>{tour.duration}</p>
+                    <p>{tour.duration || "-"}</p>
                   </div>
 
                   <div>
                     <h4>Number Of People</h4>
-                    <p>{tour.people}</p>
+                    <p>{peopleText}</p>
                   </div>
                 </div>
 
                 <h4 className="meeting-title">Meeting Point Address</h4>
 
-                <p>{tour.meetingPoint}</p>
+                <p>{meetingPointText}</p>
 
                 <div className="map-placeholder">Google Maps Area</div>
               </section>
@@ -243,13 +427,19 @@ export default function Detail() {
                       className="related-card"
                       key={item.id}
                     >
-                      <img src={item.image} alt={item.title} />
+                      {item.image ? (
+                        <img src={item.image} alt={item.title} />
+                      ) : (
+                        <div className="flex h-[140px] items-center justify-center bg-gradient-to-br from-[#181e4b] to-[#AAB700] text-center text-white font-bold">
+                          {item.title}
+                        </div>
+                      )}
 
                       <div>
                         <h3>{item.title}</h3>
                         <p>◷ Duration {item.duration}</p>
-                        <p>🚐 {item.transport}</p>
-                        <p>👨‍👩‍👧 {item.plan}</p>
+                        <p>🚐 {item.transport || "Transport Included"}</p>
+                        <p>👨‍👩‍👧 {item.plan || "Family Friendly"}</p>
 
                         <div className="related-bottom">
                           <span>{getStars(item.rating)}</span>
@@ -267,49 +457,67 @@ export default function Detail() {
                 <div className="review-summary">
                   <div>
                     <h3>
-                      4,30 <span>854 Reviews</span>
+                      {Number(averageRating || 0).toFixed(1).replace(".", ",")} <span>{reviews.length} Reviews</span>
                     </h3>
 
-                    <p className="big-stars">★★★★☆</p>
+                    <p className="big-stars">{getStars(averageRating)}</p>
                   </div>
 
                   <div className="rating-bars">
                     <p>
-                      Guide <span></span> 4.8
+                      Rating <span></span> {Number(averageRating || 0).toFixed(1)}
                     </p>
                     <p>
-                      Transportation <span></span> 3.0
+                      Total Reviews <span></span> {reviews.length}
                     </p>
                     <p>
-                      Value for money <span></span> 4.5
-                    </p>
-                    <p>
-                      Safety <span></span> 4.0
+                      Latest Review <span></span> {reviews[0] ? formatDate(reviews[0].created_at) : "-"}
                     </p>
                   </div>
                 </div>
 
-                {[
-                  "Arlene McCoy",
-                  "Jenny Wilson",
-                  "Ralph Edwards",
-                  "Courtney Henry",
-                ].map((name) => (
-                  <div className="comment-card" key={name}>
-                    <div className="avatar">{name[0]}</div>
+                {reviewLoading && (
+                  <p className="text-gray-500">Memuat review...</p>
+                )}
+
+                {!reviewLoading && reviews.length === 0 && (
+                  <div className="comment-card">
+                    <div className="avatar">N</div>
 
                     <div>
-                      <h4>{name}</h4>
-                      <p className="detail-stars">★★★★★</p>
-                      <strong>Good Tour, Really Well Organised</strong>
+                      <h4>No Review Yet</h4>
+                      <p className="detail-stars">☆☆☆☆☆</p>
+                      <strong>Belum ada komentar untuk package ini</strong>
 
                       <p>
-                        The tour was very well organised. The guide was friendly
-                        and the travel experience was comfortable and enjoyable.
+                        Review akan muncul setelah user melakukan booking,
+                        booking dikonfirmasi oleh admin, lalu user memberi rating dan komentar.
                       </p>
                     </div>
                   </div>
-                ))}
+                )}
+
+                {!reviewLoading && reviews.map((review) => {
+                  const reviewerName = getReviewerName(review);
+                  const rating = Number(review.rating || 0);
+
+                  return (
+                    <div className="comment-card" key={review.id}>
+                      <div className="avatar">{reviewerName[0]}</div>
+
+                      <div>
+                        <h4>{reviewerName}</h4>
+                        <p className="detail-stars">{getStars(rating)}</p>
+                        <strong>{rating} / 5 Rating</strong>
+
+                        <p>{review.comment}</p>
+                        <small className="text-gray-400">
+                          {formatDate(review.created_at)}
+                        </small>
+                      </div>
+                    </div>
+                  );
+                })}
               </section>
             </div>
           </div>
