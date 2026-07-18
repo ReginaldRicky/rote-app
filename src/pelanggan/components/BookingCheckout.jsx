@@ -2,7 +2,7 @@ import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { createBooking } from "../services/bookingService";
 import { BUSINESS_WHATSAPP_NUMBER, createWhatsAppUrl } from "./WhatsAppButton";
-import { formatIDR } from "../../utils/formatter";
+import { formatIDR, parseNumericValue } from "../../utils/formatter";
 import BookingForm from "./BookingForm";
 import BookingSummary from "./BookingSummary";
 
@@ -23,7 +23,7 @@ export default function BookingCheckout({ tour }) {
   });
 
   const basePrice = useMemo(() => {
-    return Number(tour?.priceValue ?? tour?.rawPrice ?? tour?.price ?? 0);
+    return parseNumericValue(tour?.priceValue ?? tour?.rawPrice ?? tour?.price, 0);
   }, [tour]);
 
   const totalPrice = useMemo(() => {

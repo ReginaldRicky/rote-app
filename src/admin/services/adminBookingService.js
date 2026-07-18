@@ -1,5 +1,6 @@
 import api from "../../lib/api";
-import { formatDateID, formatIDR } from "../../utils/formatter";
+import { formatDateID, formatIDR, parseNumericValue } from "../../utils/formatter";
+import { resolveMediaUrl } from "../../utils/media";
 
 export const BOOKING_STATUSES = [
   "Waiting Confirmation",
@@ -48,8 +49,8 @@ export function toApiStatus(status) {
 
 export function normalizeAdminBooking(booking = {}) {
   const packageData = booking.package || {};
-  const guests = Number(booking.guest_count || booking.guests || 1);
-  const total = Number(booking.total_price || booking.totalPrice || 0);
+  const guests = Math.max(1, Math.trunc(parseNumericValue(booking.guest_count ?? booking.guests, 1)));
+  const total = parseNumericValue(booking.total_price ?? booking.totalPrice, 0);
 
   return {
     id: booking.id,
@@ -65,11 +66,12 @@ export function normalizeAdminBooking(booking = {}) {
     dateLabel: formatDateID(booking.trip_date || booking.date),
     price: formatIDR(total),
     totalPrice: total,
-    pricePerPerson: Number(booking.price_per_person || 0),
+    pricePerPerson: parseNumericValue(booking.price_per_person, 0),
     status: normalizeBookingStatus(booking.status),
     apiStatus: booking.status || "waiting_confirmation",
     guests,
     location: packageData.location || "",
+    packageImage: resolveMediaUrl(packageData.image || ""),
     note: booking.note || "",
     createdAt: booking.created_at || "",
     rawData: booking,

@@ -10,6 +10,7 @@ import ActivityCard from "../components/ActivityCard";
 import GallerySection from "../components/GallerySection";
 
 import { getTours } from "../data/tours";
+import { parseNumericValue } from "../../utils/formatter";
 
 const emptyFilters = {
   keyword: "",
@@ -19,7 +20,7 @@ const emptyFilters = {
 };
 
 function getPriceValue(item) {
-  return Number(item?.rawPrice ?? item?.priceValue ?? 0);
+  return parseNumericValue(item?.rawPrice ?? item?.priceValue, 0);
 }
 
 function getCapacityValue(item) {

@@ -4,6 +4,7 @@ import {
   useContext,
   useEffect,
   useMemo,
+  useRef,
   useState,
 } from "react";
 
@@ -17,79 +18,86 @@ import {
 const CustomerAuthContext = createContext(null);
 
 export function CustomerAuthProvider({ children }) {
-  const [customer, setCustomer] = useState(() =>
-    getStoredCustomer()
+  const [customer, setCustomer] = useState(() => getStoredCustomer());
+  const [loading, setLoading] = useState(() =>
+    Boolean(getCustomerToken() && !getStoredCustomer())
   );
+  const refreshRequestRef = useRef(null);
 
-  const [loading, setLoading] = useState(true);
-
-  const refreshSession = useCallback(async () => {
+  const refreshSession = useCallback(async ({ blocking = false } = {}) => {
     const token = getCustomerToken();
+    const storedCustomer = getStoredCustomer();
 
     if (!token) {
       setCustomer(null);
       setLoading(false);
-      return;
+      return null;
     }
 
-    setLoading(true);
+    // Tampilkan sesi tersimpan seketika. Validasi server berjalan di belakang
+    // sehingga reload tidak tertahan oleh request /customer/me.
+    if (storedCustomer) {
+      setCustomer(storedCustomer);
+    }
 
-    try {
-      const currentCustomer =
-        await getCurrentCustomer();
-
-      setCustomer(currentCustomer);
-    } catch (error) {
-      console.error(
-        "Sesi pelanggan tidak valid:",
-        error
-      );
-
-      clearCustomerSession();
-      setCustomer(null);
-    } finally {
+    if (blocking || !storedCustomer) {
+      setLoading(true);
+    } else {
       setLoading(false);
     }
+
+    if (refreshRequestRef.current) {
+      return refreshRequestRef.current;
+    }
+
+    refreshRequestRef.current = getCurrentCustomer()
+      .then((currentCustomer) => {
+        if (currentCustomer) {
+          setCustomer(currentCustomer);
+        }
+        return currentCustomer;
+      })
+      .catch((error) => {
+        console.error("Sesi pelanggan tidak valid:", error);
+
+        if (error.response?.status === 401 || error.response?.status === 403) {
+          clearCustomerSession();
+          setCustomer(null);
+        }
+
+        return null;
+      })
+      .finally(() => {
+        refreshRequestRef.current = null;
+        setLoading(false);
+      });
+
+    return refreshRequestRef.current;
   }, []);
 
   useEffect(() => {
-    refreshSession();
+    refreshSession({ blocking: !getStoredCustomer() });
   }, [refreshSession]);
 
   useEffect(() => {
     function handleAuthChange() {
-      refreshSession();
+      const storedCustomer = getStoredCustomer();
+      setCustomer(storedCustomer);
+      refreshSession({ blocking: !storedCustomer });
     }
 
     function handleStorage(event) {
-      if (
-        event.key === "accessToken" ||
-        event.key === "currentCustomer"
-      ) {
-        refreshSession();
+      if (event.key === "accessToken" || event.key === "currentCustomer") {
+        handleAuthChange();
       }
     }
 
-    window.addEventListener(
-      "auth-change",
-      handleAuthChange
-    );
-
-    window.addEventListener(
-      "storage",
-      handleStorage
-    );
+    window.addEventListener("auth-change", handleAuthChange);
+    window.addEventListener("storage", handleStorage);
 
     return () => {
-      window.removeEventListener(
-        "auth-change",
-        handleAuthChange
-      );
-
-      window.removeEventListener(
-        "storage",
-        handleStorage
-      );
+      window.removeEventListener("auth-change", handleAuthChange);
+      window.removeEventListener("storage", handleStorage);
     };
   }, [refreshSession]);
 
@@ -97,15 +105,11 @@ export function CustomerAuthProvider({ children }) {
     () => ({
       customer,
       loading,
-      isAuthenticated: Boolean(customer),
+      isAuthenticated: Boolean(customer && getCustomerToken()),
       refreshSession,
       setCustomer,
     }),
-    [
-      customer,
-      loading,
-      refreshSession,
-    ]
+    [customer, loading, refreshSession]
   );
 
   return (
@@ -116,14 +120,10 @@ export function CustomerAuthProvider({ children }) {
 }
 
 export function useCustomerAuth() {
-  const context = useContext(
-    CustomerAuthContext
-  );
+  const context = useContext(CustomerAuthContext);
 
   if (!context) {
-    throw new Error(
-      "useCustomerAuth harus digunakan di dalam CustomerAuthProvider."
-    );
+    throw new Error("useCustomerAuth harus digunakan di dalam CustomerAuthProvider.");
   }
 
   return context;

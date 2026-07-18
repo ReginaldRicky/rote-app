@@ -14,6 +14,33 @@ import {
 } from "../services/adminAuthService";
 import { getAdminNotifications } from "../services/adminNotificationService";
 
+function getInitials(name = "Admin") {
+  return String(name)
+    .split(" ")
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part[0]?.toUpperCase())
+    .join("") || "A";
+}
+
+function AdminAvatar({ session, className }) {
+  if (session?.avatar) {
+    return (
+      <img
+        src={session.avatar}
+        alt={session.name || "Admin"}
+        className={`${className} object-cover`}
+      />
+    );
+  }
+
+  return (
+    <div className={`${className} flex items-center justify-center bg-[#AAB700]/15 text-[12px] font-extrabold text-[#899300]`}>
+      {getInitials(session?.name)}
+    </div>
+  );
+}
+
 export default function Topbar() {
   const navigate = useNavigate();
   const [adminSession, setAdminSession] = useState(() => getAdminSession());
@@ -48,7 +75,6 @@ export default function Topbar() {
 
     function handleAuthChange() {
       setAdminSession(getAdminSession());
-      loadNotifications();
     }
 
     function handleNotificationChange() {
@@ -201,10 +227,9 @@ export default function Topbar() {
             onClick={toggleProfile}
             className="flex items-center gap-3 rounded-xl pl-2 pr-3 py-1.5 hover:bg-[#f8fafc] transition"
           >
-            <img
-              src="https://i.pravatar.cc/100?img=12"
-              alt="Admin"
-              className="w-10 h-10 rounded-xl object-cover"
+            <AdminAvatar
+              session={adminSession}
+              className="h-10 w-10 rounded-xl"
             />
 
             <div className="hidden md:block leading-tight text-left">
@@ -225,10 +250,9 @@ export default function Topbar() {
             <div className="absolute right-0 top-[58px] z-50 w-[240px] overflow-hidden rounded-[18px] border border-[#edf1f6] bg-white shadow-[0_18px_45px_rgba(15,23,42,0.12)]">
               <div className="border-b border-[#edf1f6] px-4 py-4">
                 <div className="flex items-center gap-3">
-                  <img
-                    src="https://i.pravatar.cc/100?img=12"
-                    alt="Admin"
-                    className="h-11 w-11 rounded-xl object-cover"
+                  <AdminAvatar
+                    session={adminSession}
+                    className="h-11 w-11 rounded-xl"
                   />
 
                   <div className="min-w-0">

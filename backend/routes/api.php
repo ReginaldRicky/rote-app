@@ -37,6 +37,7 @@ Route::prefix('admin')->group(function () {
     Route::middleware('auth:sanctum')->group(function () {
         Route::get('/me', [AdminAuthController::class, 'me']);
         Route::get('/profile', [AdminAuthController::class, 'profile']);
+        Route::post('/profile', [AdminAuthController::class, 'updateProfile']);
         Route::put('/profile', [AdminAuthController::class, 'updateProfile']);
         Route::get('/notifications', [AdminNotificationController::class, 'index']);
         Route::post('/logout', [AdminAuthController::class, 'logout']);

@@ -152,7 +152,7 @@ export default function Dashboard() {
         price: item.price,
         date: item.dateLabel || item.date,
         location: item.location || item.name,
-        image: item.rawData?.package?.image || "",
+        image: item.packageImage || "",
         tag: item.status === "Confirmed" ? "CONFIRMED" : "WAITING",
       }));
 

@@ -1,1 +1,1 @@
-export { formatIDR, formatNumber, formatDateID } from "./formatter";
+export { formatIDR, formatNumber, formatDateID, parseNumericValue } from "./formatter";

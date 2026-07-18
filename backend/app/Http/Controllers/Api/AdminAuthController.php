@@ -9,6 +9,7 @@ use App\Models\Package;
 use App\Models\Pelanggan;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
 
 class AdminAuthController extends Controller
@@ -20,9 +21,9 @@ class AdminAuthController extends Controller
             'password' => ['required', 'string'],
         ]);
 
-        $admin = Admin::where('email', $validated['email'])->first();
+        $admin = Admin::where('email', strtolower(trim($validated['email'])))->first();
 
-        if (!$admin || !Hash::check($validated['password'], $admin->password)) {
+        if (! $admin || ! Hash::check($validated['password'], $admin->password)) {
             return response()->json(['message' => 'Invalid credentials'], 401);
         }
 
@@ -54,15 +55,7 @@ class AdminAuthController extends Controller
             'message' => 'Profile admin berhasil diambil.',
             'data' => [
                 'admin' => $admin,
-                'stats' => [
-                    'managed_bookings' => Booking::count(),
-                    'pending_bookings' => Booking::where('status', 'waiting_confirmation')->count(),
-                    'confirmed_trips' => Booking::whereIn('status', ['confirmed', 'completed'])->count(),
-                    'tour_packages' => Package::count(),
-                    'customers' => Pelanggan::count(),
-                    'joined_date' => optional($admin->created_at)->format('Y-m-d'),
-                    'last_updated' => optional($admin->updated_at)->format('Y-m-d H:i:s'),
-                ],
+                'stats' => $this->profileStats($admin),
             ],
         ]);
     }
@@ -79,11 +72,13 @@ class AdminAuthController extends Controller
                 'max:255',
                 Rule::unique('admins', 'email')->ignore($admin->id),
             ],
+            'avatar' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
+            'remove_avatar' => ['nullable', 'boolean'],
             'current_password' => ['nullable', 'string'],
             'new_password' => ['nullable', 'string', 'min:8', 'confirmed'],
         ]);
 
-        if (!empty($validated['new_password'])) {
+        if (! empty($validated['new_password'])) {
             if (empty($validated['current_password'])) {
                 return response()->json([
                     'success' => false,
@@ -91,7 +86,7 @@ class AdminAuthController extends Controller
                 ], 422);
             }
 
-            if (!Hash::check($validated['current_password'], $admin->password)) {
+            if (! Hash::check($validated['current_password'], $admin->password)) {
                 return response()->json([
                     'success' => false,
                     'message' => 'Password lama tidak sesuai.',
@@ -99,20 +94,33 @@ class AdminAuthController extends Controller
             }
         }
 
-        $admin->name = $validated['name'];
-        $admin->email = $validated['email'];
+        $admin->name = trim($validated['name']);
+        $admin->email = strtolower(trim($validated['email']));
 
-        if (!empty($validated['new_password'])) {
+        if ($request->boolean('remove_avatar')) {
+            $this->deleteAvatar($admin->avatar);
+            $admin->avatar = null;
+        }
+
+        if ($request->hasFile('avatar')) {
+            $this->deleteAvatar($admin->avatar);
+            $path = $request->file('avatar')->store('admins', 'public');
+            $admin->avatar = Storage::url($path);
+        }
+
+        if (! empty($validated['new_password'])) {
             $admin->password = $validated['new_password'];
         }
 
         $admin->save();
+        $admin->refresh();
 
         return response()->json([
             'success' => true,
             'message' => 'Profile admin berhasil diperbarui.',
             'data' => [
-                'admin' => $admin->fresh(),
+                'admin' => $admin,
+                'stats' => $this->profileStats($admin),
             ],
         ]);
     }
@@ -129,5 +137,34 @@ class AdminAuthController extends Controller
             'success' => true,
             'message' => 'Logout admin berhasil.',
         ]);
+    }
+
+    private function profileStats(Admin $admin): array
+    {
+        return [
+            'managed_bookings' => Booking::count(),
+            'pending_bookings' => Booking::where('status', 'waiting_confirmation')->count(),
+            'confirmed_trips' => Booking::whereIn('status', ['confirmed', 'completed'])->count(),
+            'tour_packages' => Package::count(),
+            'customers' => Pelanggan::count(),
+            'joined_date' => optional($admin->created_at)->format('Y-m-d'),
+            'last_updated' => optional($admin->updated_at)->format('Y-m-d H:i:s'),
+        ];
+    }
+
+    private function deleteAvatar(?string $avatarUrl): void
+    {
+        if (! $avatarUrl) {
+            return;
+        }
+
+        $parsedPath = parse_url($avatarUrl, PHP_URL_PATH) ?: $avatarUrl;
+        $path = str_contains($parsedPath, '/storage/')
+            ? explode('/storage/', $parsedPath, 2)[1]
+            : ltrim($parsedPath, '/');
+
+        if ($path && str_starts_with($path, 'admins/')) {
+            Storage::disk('public')->delete($path);
+        }
     }
 }

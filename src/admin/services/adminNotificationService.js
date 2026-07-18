@@ -1,6 +1,9 @@
 import api from "../../lib/api";
 
 const ADMIN_NOTIFICATION_STATE_KEY = "admin_notification_state";
+const ADMIN_NOTIFICATION_CACHE_KEY = "admin_notification_cache_v2";
+const ADMIN_NOTIFICATION_CACHE_TTL = 30_000;
+let notificationRequest = null;
 
 function getAdminToken() {
   return localStorage.getItem("adminToken");
@@ -41,13 +44,49 @@ export function applyLocalNotificationState(items = []) {
     }));
 }
 
-export async function getAdminNotifications() {
-  const response = await api.get("/admin/notifications", {
-    headers: authHeaders(),
-  });
+function readNotificationCache() {
+  try {
+    const cached = JSON.parse(sessionStorage.getItem(ADMIN_NOTIFICATION_CACHE_KEY) || "null");
+    if (!cached || !Array.isArray(cached.items)) return null;
+    if (Date.now() - Number(cached.savedAt || 0) > ADMIN_NOTIFICATION_CACHE_TTL) return null;
+    return cached.items;
+  } catch {
+    return null;
+  }
+}
 
-  const items = Array.isArray(response.data?.data) ? response.data.data : [];
-  return applyLocalNotificationState(items);
+function writeNotificationCache(items) {
+  try {
+    sessionStorage.setItem(
+      ADMIN_NOTIFICATION_CACHE_KEY,
+      JSON.stringify({ savedAt: Date.now(), items })
+    );
+  } catch {
+    // Cache hanya dipakai untuk mempercepat reload.
+  }
+}
+
+export async function getAdminNotifications(options = {}) {
+  const force = Boolean(options.force);
+
+  if (!force) {
+    const cached = readNotificationCache();
+    if (cached) return applyLocalNotificationState(cached);
+    if (notificationRequest) return notificationRequest;
+  }
+
+  notificationRequest = api
+    .get("/admin/notifications", { headers: authHeaders() })
+    .then((response) => {
+      const items = Array.isArray(response.data?.data) ? response.data.data : [];
+      writeNotificationCache(items);
+      return applyLocalNotificationState(items);
+    })
+    .finally(() => {
+      notificationRequest = null;
+    });
+
+  return notificationRequest;
 }
 
 export function markNotificationRead(notificationId) {

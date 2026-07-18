@@ -1,5 +1,7 @@
 import { Link } from "react-router-dom";
 import { FiMapPin, FiCalendar, FiUsers } from "react-icons/fi";
+import { resolveMediaUrl } from "../../utils/media";
+import { formatIDR } from "../../utils/formatter";
 
 function getStatusLabel(status) {
   switch (status) {
@@ -36,13 +38,7 @@ function getStatusClass(status) {
 }
 
 function formatCurrency(value) {
-  const number = Number(value || 0);
-
-  return new Intl.NumberFormat("id-ID", {
-    style: "currency",
-    currency: "IDR",
-    maximumFractionDigits: 0,
-  }).format(number);
+  return formatIDR(value);
 }
 
 function formatDate(value) {
@@ -62,25 +58,7 @@ function formatDate(value) {
 }
 
 function getPackageImage(image) {
-  if (!image) return "";
-
-  const cleanImage = String(image).trim();
-
-  if (!cleanImage) return "";
-
-  if (
-    cleanImage.startsWith("http://") ||
-    cleanImage.startsWith("https://") ||
-    cleanImage.startsWith("/")
-  ) {
-    return cleanImage;
-  }
-
-  /*
-    Kalau nanti kamu simpan gambar di public/images,
-    maka database cukup isi: nama-file.jpg
-  */
-  return `/images/${cleanImage}`;
+  return resolveMediaUrl(image);
 }
 
 export default function CustomerBookingCard({ booking }) {

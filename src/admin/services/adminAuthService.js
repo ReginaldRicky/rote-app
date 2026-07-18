@@ -1,4 +1,5 @@
 import api from "../../lib/api";
+import { resolveMediaUrl } from "../../utils/media";
 
 const ADMIN_SESSION_KEY = "admin_session";
 const ADMIN_TOKEN_KEY = "adminToken";
@@ -7,7 +8,11 @@ export function getAdminSession() {
   try {
     const session = JSON.parse(localStorage.getItem(ADMIN_SESSION_KEY) || "null");
     if (!session || session.role !== "Admin" || session.isLoggedIn !== true) return null;
-    return session;
+
+    return {
+      ...session,
+      avatar: resolveMediaUrl(session.avatar || ""),
+    };
   } catch (error) {
     console.error("Failed to read admin session:", error);
     localStorage.removeItem(ADMIN_SESSION_KEY);
@@ -35,7 +40,7 @@ export async function loginAdmin(email, password) {
       email: admin.email,
       name: admin.name,
       role: "Admin",
-      avatar: "https://i.pravatar.cc/100?img=12",
+      avatar: resolveMediaUrl(admin.avatar || ""),
       loginAt: new Date().toISOString(),
     };
 
@@ -57,16 +62,7 @@ export async function logoutAdmin() {
 
   try {
     if (token) {
-      await api.post(
-        "/admin/logout",
-        {},
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            Accept: "application/json",
-          },
-        }
-      );
+      await api.post("/admin/logout");
     }
   } catch (error) {
     console.warn("Admin logout API failed:", error.response?.data || error);
