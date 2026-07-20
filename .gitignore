@@ -22,3 +22,12 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Deployment secrets and generated backend files
+.env
+.env.*
+!.env.example
+backend/.env
+backend/vendor
+backend/storage/logs/*.log
+!backend/.env.back4app.example

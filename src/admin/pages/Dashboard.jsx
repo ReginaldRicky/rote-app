@@ -139,7 +139,6 @@ export default function Dashboard() {
 
     const topDestinations = buildTopDestinations(bookings, packages);
 
-<<<<<<< HEAD
   const upcomingTrips = [...bookings]
     .filter((item) => ["Waiting Confirmation", "Confirmed"].includes(item.status))
     .sort((a, b) => new Date(a.date || 0) - new Date(b.date || 0))
@@ -154,29 +153,6 @@ export default function Dashboard() {
       location: item.location || item.name,
       image: item.packageImage || "",
       tag: item.status === "Confirmed" ? "CONFIRMED" : "WAITING",
-=======
-    const upcomingTrips = [...bookings]
-      .filter((item) => ["Waiting Confirmation", "Confirmed"].includes(item.status))
-      .sort((a, b) => new Date(a.date || 0) - new Date(b.date || 0))
-      .slice(0, 5)
-      .map((item) => ({
-        id: item.id,
-        title: item.packageName,
-        customerName: item.name,
-        guests: item.guests,
-        price: item.price,
-        date: item.dateLabel || item.date,
-        location: item.location || item.name,
-        image: item.packageImage || "",
-        tag: item.status === "Confirmed" ? "CONFIRMED" : "WAITING",
-      }));
-
-    const activities = sortedBookings.slice(0, 5).map((item) => ({
-      title: `${item.name} membuat booking`,
-      description: `${item.packageName} • ${item.guests} guest • ${item.price} • ${item.status}`,
-      time: item.createdAt ? formatDateID(item.createdAt) : item.dateLabel || item.date,
-      to: item.id ? `/admin/bookings/${item.id}/edit` : "/admin/bookings",
->>>>>>> 132b6f5e9be708d10b0a00edffb88ced9d0bd69f
     }));
 
     const eventDates = [

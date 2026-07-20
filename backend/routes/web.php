@@ -3,12 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Storage;
 
-Route::get('/', function () {
-    return view('welcome');
-});
-
-// Fallback agar file upload tetap dapat dibuka walaupun public/storage belum
-// dibuat sebagai symbolic link pada komputer baru atau Windows.
+// Menyajikan file upload tanpa bergantung pada symbolic link public/storage.
 Route::get('/storage/{path}', function (string $path) {
     $cleanPath = ltrim(str_replace('..', '', $path), '/');
     $disk = Storage::disk('public');
@@ -19,3 +14,14 @@ Route::get('/storage/{path}', function (string $path) {
         'Cache-Control' => 'public, max-age=86400',
     ]);
 })->where('path', '.*');
+
+// React Router fallback. API routes tetap ditangani oleh routes/api.php.
+Route::get('/{path?}', function () {
+    $index = public_path('index.html');
+
+    abort_unless(is_file($index), 404);
+
+    return response()->file($index, [
+        'Cache-Control' => 'no-cache, no-store, must-revalidate',
+    ]);
+})->where('path', '^(?!api(?:/|$)|storage(?:/|$)|up$).*$');
