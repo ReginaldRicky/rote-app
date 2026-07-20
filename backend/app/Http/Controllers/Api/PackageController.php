@@ -149,18 +149,21 @@ class PackageController extends Controller
 
         $path = $request->file('image')->store('packages', 'public');
 
-        return $request->getSchemeAndHttpHost() . Storage::url($path);
+        return Storage::url($path);
     }
 
     private function deleteStoredImage(?string $imageUrl): void
     {
-        if (! $imageUrl || ! str_contains($imageUrl, '/storage/')) {
+        if (! $imageUrl) {
             return;
         }
 
-        $oldPath = explode('/storage/', $imageUrl)[1] ?? null;
+        $parsedPath = parse_url($imageUrl, PHP_URL_PATH) ?: $imageUrl;
+        $oldPath = str_contains($parsedPath, '/storage/')
+            ? explode('/storage/', $parsedPath, 2)[1]
+            : ltrim($parsedPath, '/');
 
-        if ($oldPath) {
+        if ($oldPath && str_starts_with($oldPath, 'packages/')) {
             Storage::disk('public')->delete($oldPath);
         }
     }

@@ -139,10 +139,14 @@ export default function Detail() {
       <div className="detail-page">
         <Navbar />
 
-        <main className="detail-container text-center py-20">
-          <p className="text-gray-600">
-            Memuat detail paket...
-          </p>
+        <main className="detail-container py-20">
+          <div className="flex items-center justify-center gap-3 text-[#181e4b]">
+            <span className="loading loading-spinner loading-md text-[#AAB700]" />
+
+            <span className="font-semibold">
+              Memuat detail paket...
+            </span>
+          </div>
         </main>
 
         <Footer />
@@ -160,16 +164,16 @@ export default function Detail() {
             Detail Paket Gagal Dimuat
           </h1>
 
-          <p className="text-red-600 mb-6">
-            {error}
-          </p>
+        <div className="alert alert-error mx-auto mb-6 max-w-xl text-left">
+          <span>{error}</span>
+        </div>
 
-          <Link
-            to="/destinations"
-            className="inline-block bg-[#AAB700] text-white px-6 py-3 rounded-full font-semibold"
-          >
-            Kembali ke Destinations
-          </Link>
+        <Link
+          to="/destinations"
+          className="btn border-none bg-[#AAB700] text-white hover:bg-[#98a500]"
+        >
+          Kembali ke Destinations
+        </Link>
         </main>
 
         <Footer />
@@ -191,12 +195,12 @@ export default function Detail() {
             Destination yang kamu cari tidak tersedia.
           </p>
 
-          <Link
-            to="/destinations"
-            className="inline-block bg-[#AAB700] text-white px-6 py-3 rounded-full font-semibold hover:bg-[#98a500] transition"
-          >
-            Back to Destinations
-          </Link>
+        <Link
+          to="/destinations"
+          className="btn border-none bg-[#AAB700] text-white hover:bg-[#98a500]"
+        >
+          Back to Destinations
+        </Link>
         </main>
 
         <Footer />
@@ -407,17 +411,27 @@ export default function Detail() {
 
                 <p>{meetingPointText}</p>
 
-                <div className="map-placeholder">Google Maps Area</div>
               </section>
 
               <section className="detail-section">
                 <div className="related-header">
                   <h2>Related Tours In Today</h2>
 
-                  <div>
-                    <button type="button">‹</button>
-                    <button type="button">›</button>
-                  </div>
+                <div className="join">
+                  <button
+                    type="button"
+                    className="btn btn-sm join-item border-[#dfe7ef] bg-white text-[#181e4b] hover:bg-[#f7faea]"
+                  >
+                    ‹
+                  </button>
+
+                  <button
+                    type="button"
+                    className="btn btn-sm join-item border-[#dfe7ef] bg-white text-[#181e4b] hover:bg-[#f7faea]"
+                  >
+                    ›
+                  </button>
+                </div>
                 </div>
 
                 <div className="related-grid">
@@ -482,7 +496,11 @@ export default function Detail() {
 
                 {!reviewLoading && reviews.length === 0 && (
                   <div className="comment-card">
-                    <div className="avatar">N</div>
+                    <div className="avatar placeholder">
+                      <div className="w-12 rounded-full bg-[#181e4b] text-white">
+                        <span className="text-sm font-bold">N</span>
+                      </div>
+                    </div>
 
                     <div>
                       <h4>No Review Yet</h4>

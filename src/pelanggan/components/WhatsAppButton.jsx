@@ -1,9 +1,11 @@
 import { FiMessageCircle } from "react-icons/fi";
+import { useToast } from "../../components/useToast";
 
 export const BUSINESS_WHATSAPP_NUMBER = "+62 823-8802-5390";
 
 export function normalizeWhatsAppNumber(phone) {
   const cleanPhone = String(phone || BUSINESS_WHATSAPP_NUMBER).replace(/[^0-9]/g, "");
+  const { warning } = useToast();
 
   if (!cleanPhone) return "";
 
@@ -34,7 +36,7 @@ export default function WhatsAppButton({
     const url = createWhatsAppUrl(phone, message);
 
     if (!url) {
-      alert("Nomor WhatsApp tidak tersedia");
+      warning("Nomor WhatsApp tidak tersedia");
       return;
     }
 

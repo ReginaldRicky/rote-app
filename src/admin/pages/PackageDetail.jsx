@@ -11,6 +11,7 @@ import PackageDetailOverview from "../components/PackageDetailOverview";
 import PackageDetailIncludes from "../components/PackageDetailIncludes";
 import PackageDetailSchedule from "../components/PackageDetailSchedule";
 
+
 function getPackageStatus(packageItem) {
   if (packageItem.participants >= 22) {
     return "High Demand";

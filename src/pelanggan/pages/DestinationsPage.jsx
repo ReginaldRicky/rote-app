@@ -10,6 +10,7 @@ import ActivityCard from "../components/ActivityCard";
 import GallerySection from "../components/GallerySection";
 
 import { getTours } from "../data/tours";
+import { parseNumericValue } from "../../utils/formatter";
 
 const emptyFilters = {
   keyword: "",
@@ -18,8 +19,10 @@ const emptyFilters = {
   groupSize: "",
 };
 
+const ITEMS_PER_PAGE = 5;
+
 function getPriceValue(item) {
-  return Number(item?.rawPrice ?? item?.priceValue ?? 0);
+  return parseNumericValue(item?.rawPrice ?? item?.priceValue, 0);
 }
 
 function getCapacityValue(item) {
@@ -104,6 +107,7 @@ function sortTours(items, sortType) {
 export default function DestinationsPage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const [tourItems, setTourItems] = useState([]);
+  const [currentPage, setCurrentPage] = useState(1);
   const [sortType, setSortType] = useState("popular");
   const [filters, setFilters] = useState(() => ({
     ...emptyFilters,
@@ -164,6 +168,25 @@ export default function DestinationsPage() {
     return sortTours(filteredTours, sortType);
   }, [filteredTours, sortType]);
 
+  const totalPages = Math.max(1, Math.ceil(sortedTours.length / ITEMS_PER_PAGE));
+
+const paginatedTours = useMemo(() => {
+  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+  const endIndex = startIndex + ITEMS_PER_PAGE;
+
+  return sortedTours.slice(startIndex, endIndex);
+}, [sortedTours, currentPage]);
+
+useEffect(() => {
+  setCurrentPage(1);
+}, [filters, sortType]);
+
+useEffect(() => {
+  if (currentPage > totalPages) {
+    setCurrentPage(totalPages);
+  }
+}, [currentPage, totalPages]);
+
   const activeFilterCount = useMemo(() => {
     return Object.values(filters).filter(Boolean).length;
   }, [filters]);
@@ -187,7 +210,7 @@ export default function DestinationsPage() {
 
       <PageHeader
         title="Explore Destinations"
-        subtitle={`${sortedTours.length} of ${tourItems.length} Activities Found`}
+        subtitle={`${paginatedTours.length} of ${sortedTours.length} Activities Found`}
         breadcrumbs={[
           { label: "Home", to: "/dashboard" },
           { label: "Destinations" },
@@ -239,12 +262,53 @@ export default function DestinationsPage() {
             </p>
           )}
 
-          {!loading && !error && sortedTours.map((item) => (
+          {!loading && !error && paginatedTours.map((item) => (
             <ActivityCard
               key={item.id}
               item={item}
             />
           ))}
+
+          {!loading && !error && sortedTours.length > ITEMS_PER_PAGE && (
+            <div className="mt-8 flex flex-wrap items-center justify-center gap-2">
+              <button
+                type="button"
+                disabled={currentPage === 1}
+                onClick={() => setCurrentPage((page) => Math.max(1, page - 1))}
+                className="rounded-xl border border-[#dfe7ef] bg-white px-4 py-2 text-sm font-bold text-[#181e4b] disabled:cursor-not-allowed disabled:opacity-40"
+              >
+                ‹ Prev
+              </button>
+
+              {Array.from({ length: totalPages }, (_, index) => {
+                const page = index + 1;
+
+                return (
+                  <button
+                    key={page}
+                    type="button"
+                    onClick={() => setCurrentPage(page)}
+                    className={`h-10 w-10 rounded-xl text-sm font-bold transition ${
+                      currentPage === page
+                        ? "bg-[#AAB700] text-white"
+                        : "border border-[#dfe7ef] bg-white text-[#181e4b] hover:bg-[#f7faea]"
+                    }`}
+                  >
+                    {page}
+                  </button>
+                );
+              })}
+
+              <button
+                type="button"
+                disabled={currentPage === totalPages}
+                onClick={() => setCurrentPage((page) => Math.min(totalPages, page + 1))}
+                className="rounded-xl border border-[#dfe7ef] bg-white px-4 py-2 text-sm font-bold text-[#181e4b] disabled:cursor-not-allowed disabled:opacity-40"
+              >
+                Next ›
+              </button>
+            </div>
+          )}
 
           {!loading && !error && sortedTours.length === 0 && (
             <div className="rounded-3xl border border-dashed border-[#dfe7ef] bg-white p-8 text-center text-gray-500">

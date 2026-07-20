@@ -1,4 +1,5 @@
 import api from "../../lib/api";
+import { resolveMediaUrl } from "../../utils/media";
 
 function getToken() {
   return localStorage.getItem("accessToken") || localStorage.getItem("token");
@@ -14,12 +15,30 @@ function authHeaders() {
   };
 }
 
+function normalizeBooking(booking) {
+  if (!booking || typeof booking !== "object") return booking;
+
+  return {
+    ...booking,
+    package: booking.package
+      ? {
+          ...booking.package,
+          image: resolveMediaUrl(booking.package.image || ""),
+        }
+      : booking.package,
+  };
+}
+
 export const createBooking = async (data) => {
   const response = await api.post("/customer/bookings", data, {
     headers: authHeaders(),
   });
 
-  return response.data;
+  const responseData = response.data;
+  return {
+    ...responseData,
+    data: normalizeBooking(responseData?.data),
+  };
 };
 
 export const getBookings = async () => {
@@ -27,15 +46,13 @@ export const getBookings = async () => {
     headers: authHeaders(),
   });
 
-  if (Array.isArray(response.data)) {
-    return response.data;
-  }
+  const items = Array.isArray(response.data)
+    ? response.data
+    : Array.isArray(response.data?.data)
+    ? response.data.data
+    : [];
 
-  if (Array.isArray(response.data?.data)) {
-    return response.data.data;
-  }
-
-  return [];
+  return items.map(normalizeBooking);
 };
 
 export const getBookingById = async (bookingId) => {
@@ -43,9 +60,5 @@ export const getBookingById = async (bookingId) => {
     headers: authHeaders(),
   });
 
-  if (response.data?.data) {
-    return response.data.data;
-  }
-
-  return response.data;
+  return normalizeBooking(response.data?.data || response.data);
 };

@@ -1,4 +1,4 @@
-import { formatIDR } from "../../utils/formatter";
+import { formatIDR, parseNumericValue } from "../../utils/formatter";
 
 export const inputClass =
   "h-11 w-full rounded-xl border border-[#e2e8f0] bg-white px-4 text-[13px] font-medium text-[#111827] outline-none transition placeholder:text-[#cbd5e1] focus:border-[#AAB700] focus:ring-4 focus:ring-[#AAB700]/10";
@@ -40,7 +40,7 @@ export function createEmptyPackageForm() {
 }
 
 export function parsePrice(price = "") {
-  return String(price).replace(/[^\d.]/g, "");
+  return String(parseNumericValue(price, 0));
 }
 
 export function formatPrice(value) {
@@ -110,7 +110,7 @@ export function validatePackageFormData(formData) {
   if (!formData.endDate) return "End date wajib diisi.";
   if (formData.startDate < today) return "Start date tidak boleh sebelum hari ini.";
   if (formData.endDate < formData.startDate) return "End date tidak boleh sebelum start date.";
-  if (!formData.priceAmount || Number(formData.priceAmount) < 0) return "Price wajib diisi dengan benar.";
+  if (formData.priceAmount === "" || parseNumericValue(formData.priceAmount, -1) < 0) return "Price wajib diisi dengan benar.";
   if (!formData.participants || Number(formData.participants) < 1) return "Participant limit minimal 1.";
 
   return "";
@@ -122,7 +122,7 @@ export function cleanPackageFormData(formData) {
     location: formData.location.trim(),
     startDate: formData.startDate,
     endDate: formData.endDate,
-    priceValue: Number(formData.priceAmount || 0),
+    priceValue: parseNumericValue(formData.priceAmount, 0),
     currency: formData.currency || "IDR",
     participants: Number(formData.participants || 1),
     imageFile: formData.imageFile || null,

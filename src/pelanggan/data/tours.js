@@ -2,6 +2,7 @@ import {
   getCustomerTourById,
   getCustomerTours,
 } from "../../services/packageService";
+import { parseNumericValue } from "../../utils/formatter";
 
 export async function getTours() {
   return getCustomerTours();
@@ -12,9 +13,7 @@ export async function getTourById(id) {
 }
 
 export function parsePrice(price = "") {
-  return Number(
-    String(price).replace(/[^\d.]/g, "")
-  ) || 0;
+  return parseNumericValue(price, 0);
 }
 
 export function formatUSD(value) {

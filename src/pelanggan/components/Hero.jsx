@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import heroBg from "../../assets/jepang.jpg";
 
 function Hero() {
   const navigate = useNavigate();
@@ -28,29 +29,37 @@ function Hero() {
   }
 
   return (
-    <section className="hero">
-      <div className="hero-overlay"></div>
+    <section
+      className="home-hero"
+      style={{
+        backgroundImage: `linear-gradient(
+          rgba(24, 30, 75, 0.45),
+          rgba(24, 30, 75, 0.45)
+        ), url(${heroBg})`,
+      }}
+    >
+      <div className="home-hero-overlay"></div>
 
-      <div className="hero-content">
-        <span className="hero-badge">
+      <div className="home-hero-content">
+        <span className="home-hero-badge">
           Explore The World
         </span>
 
-        <h1 className="hero-title">
+        <h1 className="home-hero-title">
           Find Your Perfect
           <br />
           Travel Destination
         </h1>
 
-        <p className="hero-description">
+        <p className="home-hero-description">
           Discover beautiful places, unforgettable experiences,
           and amazing adventures around the world with the best
           travel packages for your next journey.
         </p>
       </div>
 
-      <form className="hero-search-box" onSubmit={handleSearch}>
-        <div className="hero-search-item">
+      <form className="home-hero-search-box" onSubmit={handleSearch}>
+        <div className="home-hero-search-item">
           <span>Location</span>
           <input
             type="text"
@@ -60,9 +69,9 @@ function Hero() {
           />
         </div>
 
-        <div className="hero-search-divider"></div>
+        <div className="home-hero-search-divider"></div>
 
-        <div className="hero-search-item">
+        <div className="home-hero-search-item">
           <span>Guests</span>
           <input
             type="number"
@@ -73,9 +82,9 @@ function Hero() {
           />
         </div>
 
-        <div className="hero-search-divider"></div>
+        <div className="home-hero-search-divider"></div>
 
-        <div className="hero-search-item">
+        <div className="home-hero-search-item">
           <span>Date</span>
           <input
             type="date"
@@ -84,7 +93,7 @@ function Hero() {
           />
         </div>
 
-        <button type="submit" className="hero-search-btn">
+        <button type="submit" className="home-hero-search-btn">
           Search
         </button>
       </form>

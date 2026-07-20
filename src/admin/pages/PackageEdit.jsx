@@ -15,6 +15,7 @@ import {
   getPackageById,
   updatePackage,
 } from "../../services/packageService";
+import { useToast } from "../../components/useToast";
 
 export default function PackageEdit() {
   const { packageId } = useParams();
@@ -25,6 +26,7 @@ export default function PackageEdit() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
+  const { success, error: showError } = useToast();
 
   useEffect(() => {
     let active = true;
@@ -79,7 +81,7 @@ export default function PackageEdit() {
 
       await updatePackage(packageId, payload);
 
-      alert("Package berhasil diperbarui.");
+      success("Package berhasil diperbarui.");
 
       navigate(`/admin/packages/${packageId}`);
     } catch (err) {
@@ -88,7 +90,7 @@ export default function PackageEdit() {
         err.response?.data || err
       );
 
-      alert(
+      showError(
         err.response?.data?.message ||
           "Package gagal diperbarui."
       );

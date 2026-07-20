@@ -22,17 +22,19 @@ function getItemsWithPercent(items) {
 }
 
 export default function TopDestinations({ items = [] }) {
-  const data = useMemo(() => {
+  const chartData = useMemo(() => {
     const sorted = [...items].sort((a, b) => {
       return Number(b.value || b.participants || 0) - Number(a.value || a.participants || 0);
     });
 
-    return getItemsWithPercent(sorted.slice(0, 4));
+    return getItemsWithPercent(sorted);
   }, [items]);
+
+  const data = chartData.slice(0, 2);
 
   let start = 0;
 
-  const segments = data.map((item, index) => {
+  const segments = chartData.map((item, index) => {
     const end = start + item.percent;
     const segment = `${colors[index % colors.length]} ${start}% ${end}%`;
     start = end;

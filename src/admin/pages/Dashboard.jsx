@@ -10,10 +10,9 @@ import TravelPackagesSection from "../components/TravelPackagesSection";
 import RecentBookingsTable from "../components/RecentBookingsTable";
 import MiniCalendar from "../components/MiniCalendar";
 import UpcomingTrips from "../components/UpcomingTrips";
-import RecentActivity from "../components/RecentActivity";
 import { getAdminBookings } from "../services/adminBookingService";
 import { getPackages } from "../../services/packageService";
-import { formatDateID, formatIDR } from "../../utils/formatter";
+import { formatIDR } from "../../utils/formatter";
 
 const statIcons = {
   calendar: <FiCalendar />,
@@ -91,6 +90,7 @@ export default function Dashboard() {
     const cancelled = getStatusCount(bookings, "Cancelled");
     const waiting = getStatusCount(bookings, "Waiting Confirmation");
     const completed = getStatusCount(bookings, "Completed");
+
     const revenue = bookings
       .filter((item) => ["Confirmed", "Completed"].includes(item.status))
       .reduce((sum, item) => sum + Number(item.totalPrice || 0), 0);
@@ -112,7 +112,6 @@ export default function Dashboard() {
       {
         label: "Revenue",
         value: formatIDR(revenue),
-        change: "Confirmed + completed",
         icon: statIcons.dollar,
       },
     ];
@@ -140,27 +139,20 @@ export default function Dashboard() {
 
     const topDestinations = buildTopDestinations(bookings, packages);
 
-    const upcomingTrips = [...bookings]
-      .filter((item) => ["Waiting Confirmation", "Confirmed"].includes(item.status))
-      .sort((a, b) => new Date(a.date || 0) - new Date(b.date || 0))
-      .slice(0, 5)
-      .map((item) => ({
-        id: item.id,
-        title: item.packageName,
-        customerName: item.name,
-        guests: item.guests,
-        price: item.price,
-        date: item.dateLabel || item.date,
-        location: item.location || item.name,
-        image: item.rawData?.package?.image || "",
-        tag: item.status === "Confirmed" ? "CONFIRMED" : "WAITING",
-      }));
-
-    const activities = sortedBookings.slice(0, 5).map((item) => ({
-      title: `${item.name} membuat booking`,
-      description: `${item.packageName} • ${item.guests} guest • ${item.price} • ${item.status}`,
-      time: item.createdAt ? formatDateID(item.createdAt) : item.dateLabel || item.date,
-      to: item.id ? `/admin/bookings/${item.id}/edit` : "/admin/bookings",
+  const upcomingTrips = [...bookings]
+    .filter((item) => ["Waiting Confirmation", "Confirmed"].includes(item.status))
+    .sort((a, b) => new Date(a.date || 0) - new Date(b.date || 0))
+    .slice(0, 2)
+    .map((item) => ({
+      id: item.id,
+      title: item.packageName,
+      customerName: item.name,
+      guests: item.guests,
+      price: item.price,
+      date: item.dateLabel || item.date,
+      location: item.location || item.name,
+      image: item.packageImage || "",
+      tag: item.status === "Confirmed" ? "CONFIRMED" : "WAITING",
     }));
 
     const eventDates = [
@@ -174,7 +166,6 @@ export default function Dashboard() {
       tripSummary,
       topDestinations,
       upcomingTrips,
-      activities,
       revenue,
       eventDates,
     };
@@ -191,22 +182,26 @@ export default function Dashboard() {
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
-          {loading ? <span className="text-sm text-[#64748b]">Loading live data...</span> : null}
+          {loading ? (
+            <span className="text-sm text-[#64748b]">
+              Loading live data...
+            </span>
+          ) : null}
 
-          <button
-            type="button"
-            onClick={loadDashboard}
-            className="rounded-xl border border-[#e5edf5] bg-white px-4 py-2 text-sm font-bold text-[#111827] hover:bg-[#f8fafc]"
-          >
-            Refresh
-          </button>
+        <button
+          type="button"
+          onClick={loadDashboard}
+          className="btn border-[#e5edf5] bg-white text-[#111827] hover:bg-[#f8fafc]"
+        >
+          Refresh
+        </button>
 
-          <Link
-            to="/admin/bookings/add"
-            className="inline-flex items-center gap-2 rounded-xl bg-[#AAB700] px-4 py-2 text-sm font-bold text-white hover:bg-[#98a500]"
-          >
-            <FiPlus /> Add Booking
-          </Link>
+        <Link
+          to="/admin/bookings/add"
+          className="btn border-none bg-[#AAB700] text-white hover:bg-[#98a500]"
+        >
+          <FiPlus /> Add Booking
+        </Link>
         </div>
       </div>
 
@@ -216,33 +211,32 @@ export default function Dashboard() {
         </div>
       )}
 
-      <div className="grid grid-cols-1 xl:grid-cols-[minmax(0,1fr)_280px] gap-5 items-start">
-        <div className="space-y-5 min-w-0">
-          <StatsGrid stats={dashboard.stats} />
+    <div className="grid grid-cols-1 xl:grid-cols-[minmax(0,1fr)_280px] gap-5 items-start">
+      <div className="space-y-5 min-w-0 self-start">
+        <StatsGrid stats={dashboard.stats} />
 
-          <div className="grid grid-cols-1 lg:grid-cols-[1.12fr_0.88fr] gap-5">
-            <RevenueOverview totalRevenue={dashboard.revenue} />
-            <TopDestinations items={dashboard.topDestinations} />
-          </div>
-
-          <div className="space-y-4 min-w-0">
-            <TripSummary {...dashboard.tripSummary} />
-            <TravelPackagesSection items={packages} />
-          </div>
+      <div className="grid grid-cols-1 lg:grid-cols-[1.12fr_0.88fr] gap-5 items-stretch">
+        <div className="h-full">
+          <RevenueOverview totalRevenue={dashboard.revenue} />
         </div>
 
-        <aside className="space-y-5 self-start">
-          <MiniCalendar eventDates={dashboard.eventDates} />
-          <UpcomingTrips trips={dashboard.upcomingTrips} />
-        </aside>
-      </div>
-
-      <div className="grid grid-cols-1 xl:grid-cols-[minmax(0,1fr)_280px] gap-5 items-start">
-        <RecentBookingsTable bookings={dashboard.recent} />
-        <div className="xl:-mt-[56px]">
-          <RecentActivity items={dashboard.activities} />
+        <div className="h-full">
+          <TopDestinations items={dashboard.topDestinations} />
         </div>
       </div>
+
+        <TripSummary {...dashboard.tripSummary} />
+      </div>
+
+      <aside className="space-y-5 self-start h-fit">
+        <MiniCalendar eventDates={dashboard.eventDates} />
+        <UpcomingTrips trips={dashboard.upcomingTrips.slice(0, 2)} />
+      </aside>
+    </div>
+
+    <TravelPackagesSection items={packages} />
+
+    <RecentBookingsTable bookings={dashboard.recent} />
     </div>
   );
 }

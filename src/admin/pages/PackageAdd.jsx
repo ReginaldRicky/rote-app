@@ -4,17 +4,19 @@ import { useNavigate } from "react-router-dom";
 import PackageForm from "../components/PackageForm";
 import { cleanPackageFormData, createEmptyPackageForm } from "../components/packageFormUtils";
 import { createPackage } from "../../services/packageService";
+import { useToast } from "../../components/useToast";
 
 export default function PackageAdd() {
   const navigate = useNavigate();
   const [formData, setFormData] = useState(createEmptyPackageForm);
   const [saving, setSaving] = useState(false);
+  const { success, error: showError } = useToast();
 
   async function handleSubmit(data) {
     try {
       setSaving(true);
       await createPackage(cleanPackageFormData(data));
-      alert("Package berhasil dibuat.");
+      success("Package berhasil dibuat.");
       navigate("/admin/packages");
     } catch (err) {
       console.error("CREATE PACKAGE ERROR:", err.response?.data || err);
@@ -23,7 +25,7 @@ export default function PackageAdd() {
         alert(Object.values(validationErrors)[0]?.[0] || "Data package tidak valid.");
         return;
       }
-      alert(err.response?.data?.message || "Package gagal dibuat.");
+      showError(err.response?.data?.message || "Package gagal dibuat.");
     } finally {
       setSaving(false);
     }

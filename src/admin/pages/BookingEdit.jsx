@@ -5,6 +5,7 @@ import BookingForm from "../components/BookingForm";
 import { cleanBookingFormData, toBookingFormData } from "../components/bookingFormUtils";
 import { getAdminBookingById, updateAdminBooking } from "../services/adminBookingService";
 import { getPackages } from "../../services/packageService";
+import { useToast } from "../../components/useToast";
 
 export default function BookingEdit() {
   const { bookingId } = useParams();
@@ -14,6 +15,7 @@ export default function BookingEdit() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
+  const { success, error: showError } = useToast();
 
   useEffect(() => {
     let active = true;
@@ -41,11 +43,11 @@ export default function BookingEdit() {
     try {
       setSaving(true);
       await updateAdminBooking(bookingId, cleanBookingFormData(data));
-      alert("Booking berhasil diperbarui.");
+      success("Booking berhasil diperbarui.");
       navigate("/admin/bookings");
     } catch (err) {
       console.error("UPDATE BOOKING ERROR:", err.response?.data || err);
-      alert(err.response?.data?.message || "Booking gagal diperbarui.");
+      showError(err.response?.data?.message ||"Booking gagal diperbarui.");
     } finally {
       setSaving(false);
     }

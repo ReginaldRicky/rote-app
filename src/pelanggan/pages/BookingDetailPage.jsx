@@ -5,15 +5,11 @@ import Footer from "../components/Footer";
 import PageHeader from "../components/PageHeader";
 import { getBookingById } from "../services/bookingService";
 import BookingReviewForm from "../components/BookingReviewForm";
+import { resolveMediaUrl } from "../../utils/media";
+import { formatIDR } from "../../utils/formatter";
 
 function formatCurrency(value) {
-  const number = Number(value || 0);
-
-  return new Intl.NumberFormat("id-ID", {
-    style: "currency",
-    currency: "IDR",
-    maximumFractionDigits: 0,
-  }).format(number);
+  return formatIDR(value);
 }
 
 function formatDate(value) {
@@ -67,21 +63,7 @@ function getStatusClass(status) {
 }
 
 function getPackageImage(image) {
-  if (!image) return "";
-
-  const cleanImage = String(image).trim();
-
-  if (!cleanImage) return "";
-
-  if (
-    cleanImage.startsWith("http://") ||
-    cleanImage.startsWith("https://") ||
-    cleanImage.startsWith("/")
-  ) {
-    return cleanImage;
-  }
-
-  return `/images/${cleanImage}`;
+  return resolveMediaUrl(image);
 }
 
 export default function BookingDetailPage() {

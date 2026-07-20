@@ -6,6 +6,7 @@ import PackageImageSection from "./PackageImageSection";
 import PackageIncludesSection from "./PackageIncludesSection";
 import PackageScheduleSection from "./PackageScheduleSection";
 import { validatePackageFormData } from "./packageFormUtils";
+import { useToast } from "../../components/useToast";
 
 export default function PackageForm({
   formData,
@@ -19,6 +20,9 @@ export default function PackageForm({
   onSubmit,
   saving = false,
 }) {
+
+  const { warning } = useToast();
+
   function updateField(field, value) {
     setFormData((current) => ({ ...current, [field]: value }));
   }
@@ -74,12 +78,13 @@ export default function PackageForm({
     event.preventDefault();
     const validationError = validatePackageFormData(formData);
     if (validationError) {
-      alert(validationError);
+      warning(validationError);
       return;
     }
     onSubmit(formData);
   }
 
+  
   return (
     <form onSubmit={handleSubmit} className="w-full space-y-5">
       <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">

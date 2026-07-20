@@ -2,25 +2,25 @@ import React from "react";
 
 function Hero() {
   return (
-    <section className="hero">
+    <section className="home-hero">
 
       {/* Background */}
-      <div className="hero-overlay"></div>
+      <div className="home-hero-overlay"></div>
 
       {/* Content */}
-      <div className="hero-content">
+      <div className="home-hero-content">
 
-        <span className="hero-badge">
+        <span className="home-hero-badge">
           Explore The World
         </span>
 
-        <h1 className="hero-title">
+        <h1 className="home-hero-title">
           Find Your Perfect
           <br />
           Travel Destination
         </h1>
 
-        <p className="hero-description">
+        <p className="home-hero-description">
           Discover beautiful places, unforgettable experiences,
           and amazing adventures around the world with the best
           travel packages for your next journey.
@@ -29,28 +29,28 @@ function Hero() {
       </div>
 
       {/* Search Box */}
-      <div className="hero-search-box">
+      <div className="home-hero-search-box">
 
-        <div className="hero-search-item">
+        <div className="home-hero-search-item">
           <span>Location</span>
           <input type="text" placeholder="Search destination" />
         </div>
 
-        <div className="hero-search-divider"></div>
+        <div className="home-hero-search-divider"></div>
 
-        <div className="hero-search-item">
+        <div className="home-hero-search-item">
           <span>Guests</span>
           <input type="text" placeholder="2 Guests" />
         </div>
 
-        <div className="hero-search-divider"></div>
+        <div className="home-hero-search-divider"></div>
 
-        <div className="hero-search-item">
+        <div className="home-hero-search-item">
           <span>Date</span>
           <input type="text" placeholder="Select date" />
         </div>
 
-        <button className="hero-search-btn">
+        <button className="home-hero-search-btn">
           Search
         </button>
 
